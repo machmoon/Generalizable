@@ -27,51 +27,114 @@ struct ObliqueSliceView: View {
                         : "Cross-section · follows the fold (\(hingeDegrees)°)"
     }
 
+    /// Screen-up rotates from anterior (axial, t = 0) to superior (coronal, t = 90°).
+    private var topBottom: (String, String) { tilt < 45 ? ("A", "P") : ("S", "I") }
+
     var body: some View {
         ZStack {
             ObliqueMetalView(params: ObliqueParams(state: state, tilt: Float(tilt)), loaded: state.loaded)
-            GeometryReader { geo in
-                // The hinge line: where the lid meets the bottom slice (dashed amber, as in the design).
-                if tiltDegrees > 1 {
-                    Path { p in p.move(to: CGPoint(x: 0, y: geo.size.height / 2)); p.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height / 2)) }
-                        .stroke(Color(red: 0.95, green: 0.70, blue: 0.24), style: StrokeStyle(lineWidth: 1.6, dash: [7, 5]))
-                }
-            }
-            .allowsHitTesting(false)
-            GeometryReader { geo in rings(in: geo.size) }.allowsHitTesting(false)
+            GeometryReader { geo in callouts(in: geo.size) }.allowsHitTesting(false)
+            GeometryReader { geo in scaleBar(in: geo.size) }.allowsHitTesting(false)
         }
         .background(Color.black)
-        .overlay(alignment: .topLeading) { LensTag(text: caption).padding(10) }
+        // Clinical-viewer corners: identity top-left, plane top-right, scale bottom-left,
+        // disclaimer bottom-right; orientation letters on the edges.
+        .overlay(alignment: .topLeading) {
+            CornerLabel(title: state.loaded.info.title.uppercased(),
+                        detail: "\(state.window.name) · W \(Int(state.window.width)) L \(Int(state.window.center))")
+        }
+        .overlay(alignment: .topTrailing) {
+            CornerLabel(title: tiltDegrees < 2 ? "AXIAL" : "OBLIQUE \(tiltDegrees)°",
+                        detail: findings.isEmpty ? "Pivot · cursor" : "Pivot · finding centre", trailing: true)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            Text("Research · not for diagnosis").font(.system(size: 10, design: .monospaced))
+                .foregroundStyle(FoldStyle.dim).padding(12)
+        }
         .overlay(alignment: .leading) { edge("R") }
         .overlay(alignment: .trailing) { edge("L") }
+        .overlay(alignment: .top) { edge(topBottom.0).padding(.top, 16) }
+        .overlay(alignment: .bottom) { edge(topBottom.1).padding(.bottom, 16) }
+        .accessibilityLabel(caption)
     }
 
-    /// Layer Lens `render()` lid rings: a finding's sphere meets the tilted plane at distance
-    /// d = q·n from it, where q is the finding relative to the cursor; its in-plane position is
-    /// (q·right, q·up). Same plane basis and field of view as ObliqueRenderer.draw.
-    @ViewBuilder private func rings(in size: CGSize) -> some View {
+    /// Same plane basis and field of view as ObliqueRenderer.draw.
+    private func ptsPerMM(_ size: CGSize) -> CGFloat {
+        let half = 0.5 * simd_reduce_max(state.geometry.extentMM) * 1.05
+        return CGFloat(min(size.width, size.height) / 2) / CGFloat(half)
+    }
+
+    /// 50 mm bar plus the resolution in mm per screen point.
+    @ViewBuilder private func scaleBar(in size: CGSize) -> some View {
+        let k = ptsPerMM(size)
+        VStack(alignment: .leading, spacing: 3) {
+            Text("50 mm").font(.system(size: 9, design: .monospaced)).foregroundStyle(FoldStyle.dim)
+            Path { p in
+                p.move(to: .zero); p.addLine(to: CGPoint(x: 50 * k, y: 0))
+                p.move(to: CGPoint(x: 0, y: -3)); p.addLine(to: CGPoint(x: 0, y: 3))
+                p.move(to: CGPoint(x: 50 * k, y: -3)); p.addLine(to: CGPoint(x: 50 * k, y: 3))
+            }
+            .stroke(.white.opacity(0.7), lineWidth: 1)
+            .frame(width: 50 * k, height: 6)
+            Text(String(format: "%.2f mm/pt", 1 / k)).font(.system(size: 9, design: .monospaced)).foregroundStyle(FoldStyle.dim)
+        }
+        .padding(12)
+        .frame(width: size.width, height: size.height, alignment: .bottomLeading)
+    }
+
+    /// Where each finding's sphere meets the tilted plane: an amber callout chip
+    /// ("Subdural hemorrhage · 51 mm") on a leader line, like the design. The finding's own
+    /// outline comes from the label overlay in the shader.
+    @ViewBuilder private func callouts(in size: CGSize) -> some View {
         let g = state.geometry
         let t = Float(tilt * .pi / 180)
         let right = SIMD3<Float>(-1, 0, 0), up = SIMD3<Float>(0, cos(t), sin(t)), n = SIMD3<Float>(0, -sin(t), cos(t))
-        let half = 0.5 * simd_reduce_max(g.extentMM) * 1.05
-        let ptsPerMM = CGFloat(min(size.width, size.height) / 2) / CGFloat(half)
-        ForEach(Array(findings.enumerated()), id: \.element.id) { k, f in
+        let k = ptsPerMM(size)
+        ForEach(Array(findings.enumerated()), id: \.element.id) { _, f in
             if let v = f.voxel(in: g) {
                 let q = (v - state.cursor) * g.spacing
                 let r = Float(f.radiusMM ?? 10), d = simd_dot(q, n)
                 if abs(d) < r {
-                    LensRing(center: CGPoint(x: size.width / 2 + CGFloat(simd_dot(q, right)) * ptsPerMM,
-                                             y: size.height / 2 - CGFloat(simd_dot(q, up)) * ptsPerMM),
-                             radius: CGFloat((r * r - d * d).squareRoot()) * ptsPerMM, number: k + 1, label: f.title,
-                             containerWidth: size.width)
+                    let c = CGPoint(x: size.width / 2 + CGFloat(simd_dot(q, right)) * k,
+                                    y: size.height / 2 - CGFloat(simd_dot(q, up)) * k)
+                    let rad = CGFloat((r * r - d * d).squareRoot()) * k
+                    FindingCallout(center: c, radius: rad, text: "\(f.title) · \(Int((2 * (f.radiusMM ?? 10)).rounded())) mm",
+                                   container: size)
                 }
             }
         }
     }
 
     private func edge(_ s: String) -> some View {
-        Text(s).font(.system(size: 10, weight: .medium, design: .monospaced))
-            .foregroundStyle(.white.opacity(0.5)).padding(8)
+        Text(s).font(.system(size: 11, weight: .semibold, design: .monospaced))
+            .foregroundStyle(.white.opacity(0.6)).padding(10)
+    }
+}
+
+/// Amber callout: a leader line from the finding's edge (up and to the side with more room)
+/// to a dark chip with an amber border. Stays inside the pane.
+private struct FindingCallout: View {
+    var center: CGPoint
+    var radius: CGFloat
+    var text: String
+    var container: CGSize
+
+    var body: some View {
+        let toRight = center.x < container.width * 0.6
+        let edge = CGPoint(x: center.x + (toRight ? 0.7 : -0.7) * radius, y: center.y - 0.7 * radius)
+        let chipW: CGFloat = min(CGFloat(text.count) * 7.2 + 20, container.width * 0.6)
+        let chipX = min(max(edge.x + (toRight ? 22 + chipW / 2 : -22 - chipW / 2), chipW / 2 + 8), container.width - chipW / 2 - 8)
+        let chipY = max(edge.y - 26, 40)
+        ZStack {
+            Path { p in p.move(to: edge); p.addLine(to: CGPoint(x: chipX + (toRight ? -chipW / 2 : chipW / 2), y: chipY)) }
+                .stroke(FoldStyle.amber, lineWidth: 1.2)
+            Text(text).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .padding(.horizontal, 9).frame(width: chipW, height: 24)
+                .background(RoundedRectangle(cornerRadius: 4).fill(Color.black.opacity(0.78)))
+                .overlay(RoundedRectangle(cornerRadius: 4).stroke(FoldStyle.amber, lineWidth: 1.2))
+                .position(x: chipX, y: chipY)
+        }
     }
 }
 

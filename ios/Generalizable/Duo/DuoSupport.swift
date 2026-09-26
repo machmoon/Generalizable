@@ -164,7 +164,9 @@ struct DuoAdaptiveViewer<Content: View>: View {
                 simDegrees = d; simEnabled = true
             }
             findings = CaseFindings.load(for: state.loaded.info) ?? []
+            if reading.posture == .folded { pivotOnFinding() }
         }
+        .onChange(of: reading.posture) { _, p in if p == .folded { pivotOnFinding() } }
         .onChange(of: mapping) { _, _ in apply(reading) }
         .sensoryFeedback(.impact(weight: .medium), trigger: HingeMath.detent(at: reading.degrees)) { _, new in new != nil }
         .sensoryFeedback(.selection, trigger: reading.posture)
@@ -175,6 +177,13 @@ struct DuoAdaptiveViewer<Content: View>: View {
     }
 
     // MARK: Hinge → state
+
+    /// Folding pivots the cut on the case's finding ("Pivot · finding centre"): both halves go
+    /// through it, so tilting the lid keeps the finding in view.
+    private func pivotOnFinding() {
+        guard mapping == .cut, let f = findings.first, let v = f.voxel(in: state.geometry) else { return }
+        state.cursor = v
+    }
 
     private func apply(_ r: HingeReading) {
         switch mapping {
@@ -211,14 +220,24 @@ struct DuoAdaptiveViewer<Content: View>: View {
                     .frame(width: split.first.width, height: split.first.height)
                     .clipped()
                     .offset(x: split.first.minX, y: split.first.minY)
-                SliceView(plane: .axial, state: state)
-                    .overlay { FindingRings(state: state, findings: findings) }
-                    .overlay { CutLine(state: state, visible: lidTilt > 1) }
-                    .overlay(alignment: .topLeading) { LensTag(text: "Top-down view · slice \(sliceLabel)").padding(10) }
-                    .overlay(alignment: .bottomLeading) {
-                        // Matches the cut line's own colour so "the blue line" is unambiguous.
-                        LensTag(text: "Drag the blue line to move the cut", color: Color(red: 0.27, green: 0.81, blue: 0.88)).padding(10)
+                // Base: the side (sagittal) slice through the finding. The fold tilts the lid's
+                // plane about the patient's left–right axis, which is exactly what a side view
+                // shows as a line: the blue line is the lid's plane, rotating as you fold.
+                SliceView(plane: .sagittal, state: state)
+                    .overlay { CutAngleLine(state: state, tilt: lidTilt) }
+                    .overlay(alignment: .topLeading) {
+                        CornerLabel(title: "SAGITTAL", detail: findings.isEmpty ? "Through the cursor" : "Through finding centre")
                     }
+                    .overlay(alignment: .topTrailing) {
+                        CornerLabel(title: "Cut \(Int(lidTilt.rounded()))°", detail: "Hinge \(Int(reading.degrees.rounded()))°",
+                                    trailing: true)
+                    }
+                    .overlay(alignment: .bottomLeading) {
+                        Text("Fold to change the cut angle")
+                            .font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.85))
+                            .padding(14)
+                    }
+                    .overlay(alignment: .bottomTrailing) { LayersCTToggle(state: state).padding(12) }
                     .frame(width: split.second.width, height: split.second.height)
                     .clipped()
                     .offset(x: split.second.minX, y: split.second.minY)
@@ -386,6 +405,83 @@ struct DuoHingeGeometry {
             let b = CGRect(x: 0, y: seam.maxY, width: size.width, height: max(size.height - seam.maxY, 0))
             return Split(first: a.intersection(bounds), second: b.intersection(bounds), seam: seam, vertical: false)
         }
+    }
+}
+
+// MARK: - Fold design pieces (monospace corner labels, blue cut line, Layers | CT)
+
+enum FoldStyle {
+    static let blue = Color(red: 0.36, green: 0.58, blue: 0.95)
+    static let amber = Color(red: 0.93, green: 0.66, blue: 0.29)
+    static let dim = Color.white.opacity(0.55)
+}
+
+/// Two-line monospace corner label: bold title, dim detail.
+struct CornerLabel: View {
+    var title: String
+    var detail: String? = nil
+    var trailing = false
+    var body: some View {
+        VStack(alignment: trailing ? .trailing : .leading, spacing: 2) {
+            Text(title).font(.system(size: 11, weight: .bold, design: .monospaced)).foregroundStyle(.white.opacity(0.92))
+            if let detail {
+                Text(detail).font(.system(size: 10, weight: .regular, design: .monospaced)).foregroundStyle(FoldStyle.dim)
+            }
+        }
+        .padding(12)
+        .allowsHitTesting(false)
+    }
+}
+
+/// The lid's plane seen edge-on in the side view: a line through the pivot along the plane's
+/// in-plane "up" direction (0, cos t, sin t) (same basis as ObliqueRenderer), with a dot at the pivot.
+private struct CutAngleLine: View {
+    @Bindable var state: ViewerState
+    var tilt: Double
+    var body: some View {
+        GeometryReader { geo in
+            if let vp = state.viewports[.sagittal], vp.viewSize.width > 0 {
+                let g = state.geometry, t = Float(tilt * .pi / 180)
+                let p = vp.voxelToView(state.cursor, g)
+                // Direction in mm → voxels, then projected: a far point gives the on-screen angle.
+                let dir = SIMD3<Float>(0, cos(t) / g.spacing.y, sin(t) / g.spacing.z) * 100
+                let q = vp.voxelToView(state.cursor + dir, g)
+                let dx = q.x - p.x, dy = q.y - p.y, len = max(hypot(dx, dy), 0.001)
+                let reach = hypot(geo.size.width, geo.size.height)
+                let ux = dx / len * reach, uy = dy / len * reach
+                Path { path in
+                    path.move(to: CGPoint(x: p.x - ux, y: p.y - uy)); path.addLine(to: CGPoint(x: p.x + ux, y: p.y + uy))
+                }
+                .stroke(FoldStyle.blue, lineWidth: 1.5)
+                Circle().fill(FoldStyle.amber).frame(width: 9, height: 9)
+                    .overlay(Circle().stroke(.black.opacity(0.8), lineWidth: 1.5))
+                    .position(p)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+/// "Layers | CT": coloured structure overlay on, or the plain grayscale scan.
+private struct LayersCTToggle: View {
+    @Bindable var state: ViewerState
+    var body: some View {
+        HStack(spacing: 0) {
+            segment("Layers", on: state.showLabels) { state.showLabels = true }
+            segment("CT", on: !state.showLabels) { state.showLabels = false }
+        }
+        .padding(2)
+        .background(Capsule().fill(.white.opacity(0.12)))
+    }
+    private func segment(_ title: String, on: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: { withAnimation(.snappy(duration: 0.2), action) }) {
+            Text(title).font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(on ? .black : .white.opacity(0.7))
+                .padding(.horizontal, 14).frame(height: 26)
+                .background(Capsule().fill(on ? Color.white : .clear))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 
