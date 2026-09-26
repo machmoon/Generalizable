@@ -98,39 +98,64 @@ struct ReportPanel: View {
 
     @ViewBuilder private func aiSection(_ ai: AIResult) -> some View {
         Section {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
+                // Headline: what the model flagged, and how confident it is on a blind read
+                // (the model never saw the expert-drawn mask below).
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: "sparkles").foregroundStyle(.orange)
-                    Text(ai.headlineClass.capitalized).font(.subheadline.weight(.semibold))
-                    if let p = ai.headlineProbability {
-                        Text(String(format: "%.1f%%", p * 100)).font(.subheadline.monospacedDigit())
-                    }
+                    Text(ai.headlineClass.capitalized).font(.title3.weight(.semibold))
                     Spacer()
-                    Button { AICard.jumpToPeak(state: state, ai: ai) } label: {
-                        Label("Jump to peak", systemImage: "scope").font(.caption.weight(.semibold))
+                    if let p = ai.headlineProbability {
+                        VStack(alignment: .trailing, spacing: 0) {
+                            Text(String(format: "%.0f%%", p * 100))
+                                .font(.title3.weight(.bold).monospacedDigit())
+                            Text("blind detection").font(.caption2).foregroundStyle(.secondary)
+                        }
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.small)
-                    .disabled(ai.peakSlice == nil)
                 }
+
+                Text("Research model · not a diagnosis")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Color.orange.opacity(0.15), in: Capsule())
+
                 if let pk = ai.peakSlice {
-                    Text("Peak on axial slice \(pk + 1) of \(state.sliceCount(for: .axial)).").font(.callout)
+                    Label("Strongest signal on axial slice \(pk + 1) of \(state.sliceCount(for: .axial))",
+                          systemImage: "location.viewfinder")
+                        .font(.callout).foregroundStyle(.secondary)
                 }
                 if let d = ai.diceVsExpert {
-                    Text(String(format: "Heatmap agrees with the expert mask: Dice %.2f", d)).font(.callout)
+                    Label(String(format: "Agrees with the expert-drawn mask: Dice %.2f", d),
+                          systemImage: "checkmark.seal")
+                        .font(.callout).foregroundStyle(.secondary)
                 }
                 let others = ai.series.filter { $0.name.lowercased() != ai.headlineClass.lowercased() }
                     .sorted { $0.probability > $1.probability }
                 if !others.isEmpty {
-                    Text(others.map { "\($0.name.capitalized) \(String(format: "%.1f%%", $0.probability * 100))" }
+                    Text("Also checked: " + others.map { "\($0.name.capitalized) \(String(format: "%.0f%%", $0.probability * 100))" }
                         .joined(separator: " · "))
                         .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
                 }
-                Toggle("Show heatmap", isOn: $state.showAI).font(.callout)
+
+                Divider()
+
+                Toggle("Show heatmap on scan", isOn: $state.showAI).font(.callout)
+
+                Button { AICard.jumpToPeak(state: state, ai: ai) } label: {
+                    Label("Jump to peak slice", systemImage: "scope").font(.callout.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(ai.peakSlice == nil)
+
                 Text(aiModelLine(ai)).font(.caption2).foregroundStyle(.secondary)
                 Text(ai.disclaimer).font(.caption2).foregroundStyle(.secondary)
             }
-            .padding(.vertical, 4)
-        } header: { Text("AI findings") }
+            .padding(.vertical, 6)
+        } header: {
+            Label("AI Findings", systemImage: "sparkles")
+        }
     }
 
     private func aiModelLine(_ ai: AIResult) -> String {

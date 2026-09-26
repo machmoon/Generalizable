@@ -28,6 +28,17 @@ struct MeshView: View {
     @State private var showPlane = true
     @State private var resetToken = 0
 
+    /// When every visible organ is a lesion (the head CT's default: skin/skull/brain hidden,
+    /// hemorrhage shown), a bleed floating alone in black space has no spatial meaning. Pick one
+    /// real anatomical mesh — skin first, else skull, else brain — to render as a faint,
+    /// non-interactive context shell regardless of the Structures panel's toggles. Cases with no
+    /// such mesh (e.g. abdominal organs) are unaffected.
+    private var contextOrgan: Organ? {
+        let visible = state.visibleOrgans
+        guard !visible.isEmpty, visible.allSatisfy(\.isLesion) else { return nil }
+        return [Organ.skin, .skull, .brain].first { meshes[$0] != nil }
+    }
+
     var body: some View {
         ZStack {
             MeshSceneView(meshes: meshes,
@@ -40,6 +51,7 @@ struct MeshView: View {
                           focus: focus,
                           clip: clipPlane,
                           resetToken: resetToken,
+                          contextOrgan: contextOrgan,
                           onSelect: { organ in
                               state.selectedOrgan = (organ == state.selectedOrgan) ? nil : organ
                           })
@@ -77,16 +89,27 @@ struct MeshView: View {
                 }
                 .padding(.top, 28)   // clear PaneChrome's badge row
                 Spacer()
-                HStack(spacing: 10) {
-                    Image(systemName: "circle.lefthalf.filled").font(.caption)
-                    Slider(value: $opacity, in: 0.08...1).frame(maxWidth: 160)
+                HStack(spacing: 8) {
+                    Image(systemName: "circle.lefthalf.filled")
+                        .accessibilityHidden(true)
+                    Slider(value: $opacity, in: 0.08...1)
+                        .frame(maxWidth: 96)
+                        .tint(.white.opacity(0.75))
+                        .scaleEffect(0.8)
+                        .accessibilityLabel("Structure opacity")
+                        .accessibilityValue("\(Int(opacity * 100)) percent")
+                    Divider().frame(height: 12).overlay(Color.white.opacity(0.2))
                     Button { showPlane.toggle() } label: {
                         Image(systemName: showPlane ? "square.split.1x2.fill" : "square.split.1x2")
                     }
+                    .accessibilityLabel("Reference plane")
+                    .accessibilityValue(showPlane ? "On" : "Off")
                     Button { resetToken += 1 } label: { Image(systemName: "scope") }
+                        .accessibilityLabel("Reset camera")
                 }
-                .font(.callout)
-                .padding(.horizontal, 10).padding(.vertical, 6)
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.85))
+                .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(.ultraThinMaterial, in: Capsule())
             }
             .padding(10)
@@ -159,6 +182,8 @@ private struct MeshSceneView: UIViewRepresentable {
     var focus: SIMD3<Float>
     var clip: SIMD4<Float>?
     var resetToken: Int
+    /// Faint always-on anatomical shell for spatial context; not selectable. See MeshView.contextOrgan.
+    var contextOrgan: Organ?
     var onSelect: (Organ?) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -202,6 +227,7 @@ private struct MeshSceneView: UIViewRepresentable {
         var lastFocus: SIMD3<Float>?
         var lastReset = 0
         var lastExtent: SIMD3<Float> = .zero
+        var contextOrgan: Organ?
 
         override init() {
             super.init()
@@ -254,6 +280,7 @@ private struct MeshSceneView: UIViewRepresentable {
         }
 
         func sync(_ p: MeshSceneView) {
+            contextOrgan = p.contextOrgan
             if p.extent != lastExtent {
                 lastExtent = p.extent
                 let side = CGFloat(simd_length(p.extent))
@@ -315,12 +342,15 @@ private struct MeshSceneView: UIViewRepresentable {
             let plane = p.clip ?? SIMD4<Float>(0, 0, 1, 0)
             let planeValue = NSValue(scnVector4: SCNVector4(plane.x, plane.y, plane.z, plane.w))
             for (organ, n) in nodes {
-                n.isHidden = !p.visible.contains(organ)
-                let alpha = style(n, organ: organ, selected: p.selected, opacity: p.opacity, clipOn: clipOn)
+                let isContext = organ == p.contextOrgan
+                n.isHidden = !(p.visible.contains(organ) || isContext)
+                let alpha = style(n, organ: organ, selected: p.selected, opacity: p.opacity, clipOn: clipOn, isContext: isContext)
                 if let m = n.geometry?.firstMaterial {
                     m.setValue(planeValue, forKey: "gzClipPlane")
-                    m.setValue(NSNumber(value: clipOn && !organ.isLesion ? 1 : 0), forKey: "gzClipOn")
-                    m.setValue(NSNumber(value: 1), forKey: "gzRim")
+                    // The context shell stays whole (unclipped) so it keeps reading as "the head"
+                    // even while the hinge cuts through the lesion and other organs.
+                    m.setValue(NSNumber(value: clipOn && !organ.isLesion && !isContext ? 1 : 0), forKey: "gzClipOn")
+                    m.setValue(NSNumber(value: isContext ? 0 : 1), forKey: "gzRim")
                 }
                 if let cap = caps[organ], let cm = cap.geometry?.firstMaterial {
                     cap.isHidden = !clipOn || n.isHidden || alpha < 0.999
@@ -347,10 +377,22 @@ private struct MeshSceneView: UIViewRepresentable {
 
         /// Returns the organ's final opacity.
         @discardableResult
-        private func style(_ n: SCNNode, organ: Organ, selected: Organ?, opacity: Float, clipOn: Bool) -> CGFloat {
+        private func style(_ n: SCNNode, organ: Organ, selected: Organ?, opacity: Float, clipOn: Bool, isContext: Bool = false) -> CGFloat {
             guard let m = n.geometry?.firstMaterial else { return 0 }
             let base = UIColor(organ.color)
             m.diffuse.contents = base
+            if isContext {
+                // Fixed faint shell for spatial orientation only: ignores the opacity slider and
+                // selection so it never competes with the lesion it exists to give context to.
+                let alpha: CGFloat = 0.06
+                m.emission.contents = UIColor.black
+                m.readsFromDepthBuffer = true
+                n.renderingOrder = -10
+                m.transparency = alpha
+                m.writesToDepthBuffer = false
+                m.blendMode = .alpha
+                return alpha
+            }
             let isSel = selected == organ
             let dimmed = selected != nil && !isSel
             var alpha: CGFloat
@@ -429,8 +471,9 @@ private struct MeshSceneView: UIViewRepresentable {
                       let raw = UInt8(name.dropFirst(6)) else { return nil }
                 return Organ(rawValue: raw)
             }
-            // Lesions are drawn on top, so they win the tap when under the finger.
-            onSelect?(organs.first(where: \.isLesion) ?? organs.first)
+            // Lesions are drawn on top, so they win the tap when under the finger. The context
+            // shell is scenery, not a selectable structure.
+            onSelect?(organs.first(where: \.isLesion) ?? organs.first { $0 != contextOrgan })
         }
     }
 }
