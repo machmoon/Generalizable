@@ -18,7 +18,7 @@
     "@cornerstonejs/nifti-volume-loader": "^4.20.3",
     "@cornerstonejs/tools": "^4.20.3",
     "@kitware/vtk.js": "34.15.1",
-    "@niivue/niivue": "^0.62.1",
+    "@niivue/niivue": "^0.69.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@tabler/icons": "^3.46.0",
