@@ -75,7 +75,6 @@ struct MeshView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.top, 28)   // clear PaneChrome's badge row
                 Spacer()
                 HStack(spacing: 10) {
                     Image(systemName: "circle.lefthalf.filled").font(.caption)

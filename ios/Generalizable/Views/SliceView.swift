@@ -1,6 +1,6 @@
 // SliceView — one MPR pane (axial / coronal / sagittal) backed by Metal.
-// Layout of the annotations (orientation letters on the edges, crosshair lines coloured by
-// the plane they represent; plane badge and slice n/N come from PaneChrome) follows the
+// Layout of the annotations (plane name top-left, slice n/N bottom-right, orientation
+// letters on the edges, crosshair lines coloured by the plane they represent) follows the
 // BodyMaps viewer (PanTS-Demo, built on Cornerstone3D: axial red, sagittal yellow,
 // coronal green) and NiiVue's 2D slice view (github.com/niivue/niivue,
 // packages/niivue/src/shader-srcs.ts `vertSliceMMShader` / `kFragSliceHead`).
@@ -67,15 +67,25 @@ struct SliceView: View {
         }
     }
 
-    /// Orientation letters only: the plane badge and slice counter live in ViewerView's
-    /// PaneChrome and W/L in its status bar, so drawing them here too made them overlap.
     private var annotations: some View {
         let e = plane.edgeLetters
-        let font = Font.system(size: 11, weight: .semibold, design: .monospaced)
+        let font = Font.system(size: 12, weight: .semibold, design: .monospaced)
         return ZStack {
-            VStack { Text(e.t); Spacer(); Text(e.b) }.padding(.top, 30).padding(.bottom, 6)
-            HStack { Text(e.l); Spacer(); Text(e.r) }
-                .padding(.leading, 6).padding(.trailing, 30)   // right edge hosts the slice slider
+            VStack { Text(e.t); Spacer(); Text(e.b) }.padding(.vertical, 4)
+            HStack { Text(e.l); Spacer(); Text(e.r) }.padding(.horizontal, 6)
+            VStack {
+                HStack {
+                    Text(plane.rawValue.capitalized).foregroundStyle(plane.tint)
+                    Spacer()
+                }
+                Spacer()
+                HStack {
+                    Text("W \(Int(state.window.width)) L \(Int(state.window.center))")
+                    Spacer()
+                    Text("\(Int(state.slice(for: plane)) + 1)/\(state.sliceCount(for: plane))")
+                }
+            }
+            .padding(.horizontal, 22).padding(.vertical, 6)
         }
         .font(font)
         .foregroundStyle(.white.opacity(0.85))
