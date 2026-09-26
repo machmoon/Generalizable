@@ -1,0 +1,40 @@
+{
+  "dims": [
+    239,
+    169,
+    487
+  ],
+  "spacing_mm": [
+    2.0,
+    2.0,
+    2.0
+  ],
+  "origin_mm": [
+    -239.10182189941406,
+    -88.05490016937256,
+    -573.0
+  ],
+  "orientation": "RAS",
+  "ct_dtype": "int16_le_HU",
+  "labels_dtype": "uint8",
+  "window_presets": {
+    "soft": [
+      40,
+      400
+    ],
+    "bone": [
+      500,
+      2000
+    ],
+    "brain": [
+      40,
+      80
+    ],
+    "lung": [
+      -600,
+      1500
+    ]
+  },
+  "source": "NLM Visible Human Project, VHP-M (male), Normal (fresh) whole-body CT series 1.3.6.1.4.1.5962.1.3.1174.2.1672334394.26545, via NCI Imaging Data Commons collection nlm_visible_human_project",
+  "license": "NLM Terms and Conditions (2019), no license agreement required"
+}

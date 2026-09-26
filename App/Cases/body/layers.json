@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "name": "Skin",
+    "group": "skin",
+    "color": "#E8B89C",
+    "peel_order": 0,
+    "blurb": "The outer surface of the body."
+  },
+  {
+    "id": 2,
+    "name": "Fat",
+    "group": "fat",
+    "color": "#F4D35E",
+    "peel_order": 1,
+    "blurb": "Subcutaneous fat beneath the skin."
+  },
+  {
+    "id": 3,
+    "name": "Muscle",
+    "group": "muscle",
+    "color": "#C1443C",
+    "peel_order": 2,
+    "blurb": "Skeletal muscle that moves the skeleton."
+  },
+  {
+    "id": 4,
+    "name": "Bone",
+    "group": "bone",
+    "color": "#EDE6DA",
+    "peel_order": 3,
+    "blurb": "The skeleton: skull, spine, ribs, and limb bones."
+  },
+  {
+    "id": 5,
+    "name": "Lungs",
+    "group": "organ",
+    "color": "#A7C7E7",
+    "peel_order": 4,
+    "blurb": "The lungs, which exchange oxygen and carbon dioxide."
+  },
+  {
+    "id": 6,
+    "name": "Heart",
+    "group": "organ",
+    "color": "#D1495B",
+    "peel_order": 4,
+    "blurb": "The heart, which pumps blood through the body."
+  },
+  {
+    "id": 7,
+    "name": "Liver",
+    "group": "organ",
+    "color": "#8B5E3C",
+    "peel_order": 4,
+    "blurb": "The liver, which filters blood and aids digestion."
+  },
+  {
+    "id": 8,
+    "name": "Spleen",
+    "group": "organ",
+    "color": "#6B4C9A",
+    "peel_order": 4,
+    "blurb": "The spleen, part of the immune and blood-filtering system."
+  },
+  {
+    "id": 9,
+    "name": "Kidneys",
+    "group": "organ",
+    "color": "#4C7A54",
+    "peel_order": 4,
+    "blurb": "The kidneys, which filter blood and produce urine."
+  },
+  {
+    "id": 10,
+    "name": "Stomach",
+    "group": "organ",
+    "color": "#E8873A",
+    "peel_order": 4,
+    "blurb": "The stomach, where digestion begins."
+  },
+  {
+    "id": 11,
+    "name": "Aorta",
+    "group": "organ",
+    "color": "#B22222",
+    "peel_order": 4,
+    "blurb": "The aorta, the body's main artery, standing in for blood."
+  },
+  {
+    "id": 12,
+    "name": "Brain",
+    "group": "brain",
+    "color": "#F2A0C9",
+    "peel_order": 5,
+    "blurb": "The brain, visible where this scan's field of view reaches the head."
+  },
+  {
+    "id": 13,
+    "name": "Intestines",
+    "group": "organ",
+    "color": "#B98D63",
+    "peel_order": 4,
+    "blurb": "The intestines, where digestion continues after the stomach."
+  },
+  {
+    "id": 14,
+    "name": "Pancreas",
+    "group": "organ",
+    "color": "#D9A441",
+    "peel_order": 4,
+    "blurb": "The pancreas, which aids digestion and regulates blood sugar."
+  },
+  {
+    "id": 16,
+    "name": "Bladder",
+    "group": "organ",
+    "color": "#E0C34C",
+    "peel_order": 4,
+    "blurb": "The bladder, which stores urine."
+  }
+]

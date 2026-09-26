@@ -1,0 +1,40 @@
+{
+  "dims": [
+    225,
+    256,
+    216
+  ],
+  "spacing_mm": [
+    0.8,
+    0.8,
+    0.8
+  ],
+  "origin_mm": [
+    -79.9051362991333,
+    -104.87120188474655,
+    -56.24263037443161
+  ],
+  "orientation": "RAS",
+  "ct_dtype": "int16_le_HU",
+  "labels_dtype": "uint8",
+  "window_presets": {
+    "soft": [
+      40,
+      400
+    ],
+    "bone": [
+      500,
+      2000
+    ],
+    "brain": [
+      40,
+      80
+    ],
+    "lung": [
+      -600,
+      1500
+    ]
+  },
+  "source": "CQ500-CT-243 (qure.ai CQ500 head CT dataset), thin-slice (0.628mm) series, with the Seg-CQ500 intracranial hemorrhage mask for this case",
+  "license": "CQ500: CC BY-NC-SA 4.0 (Chilamkurthy et al., Lancet 2018); Seg-CQ500 mask: CC BY 4.0 (Zenodo 8063221)"
+}

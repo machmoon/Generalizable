@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Skin",
+    "group": "skin",
+    "color": "#E8B89C",
+    "peel_order": 0,
+    "blurb": "The scalp, the outer surface of the head."
+  },
+  {
+    "id": 2,
+    "name": "Skull",
+    "group": "bone",
+    "color": "#EDE6DA",
+    "peel_order": 1,
+    "blurb": "The skull, which protects the brain."
+  },
+  {
+    "id": 3,
+    "name": "Brain",
+    "group": "brain",
+    "color": "#C9A7E8",
+    "peel_order": 2,
+    "blurb": "Brain tissue."
+  },
+  {
+    "id": 4,
+    "name": "Bleed",
+    "group": "finding",
+    "color": "#FF00AA",
+    "peel_order": 3,
+    "blurb": "An intracranial hemorrhage identified in this scan."
+  }
+]

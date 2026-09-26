@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "label_id": 4,
+    "title": "Subdural hemorrhage",
+    "center_mm": [
+      -35.1051362991333,
+      -3.271201884746546,
+      67.75736962556839
+    ],
+    "radius_mm": 25.4,
+    "explanation": "A subdural hemorrhage (bleeding between the brain and the skull), voxel-masked by Seg-CQ500. CQ500's three-reader consensus for this case (CQ500-CT-243) rates subdural hemorrhage at 0.93 and associated mass effect / midline shift at 0.99."
+  }
+]
