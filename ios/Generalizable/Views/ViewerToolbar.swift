@@ -16,6 +16,7 @@ struct ViewerToolbar: View {
         VStack(spacing: Theme.Space.s) {
             HStack(spacing: Theme.Space.m) {
                 GeneralizableIconButton(systemName: "chevron.left", action: onBack)
+                    .accessibilityLabel("Back")
                 VStack(alignment: .leading, spacing: 1) {
                     Text(state.loaded.info.title)
                         .font(Theme.ui(15, .semibold)).foregroundStyle(Theme.text).lineLimit(1)
@@ -25,11 +26,10 @@ struct ViewerToolbar: View {
                 }
                 .layoutPriority(1)
                 Spacer(minLength: 4)
-                GeneralizableIconButton(systemName: "list.bullet.below.rectangle", active: showOrgans) {
-                    showOrgans.toggle()
-                }
-                GeneralizableIconButton(systemName: "doc.text.magnifyingglass", active: showReport) {
-                    showReport = true
+                // Full text labels when there's room; icon-only (with an accessibility label) otherwise.
+                ViewThatFits(in: .horizontal) {
+                    panelButtons(labeled: true)
+                    panelButtons(labeled: false)
                 }
             }
             // Fit the row at iPhone Duo portrait width: full labels when there is room,
@@ -44,17 +44,49 @@ struct ViewerToolbar: View {
         }
     }
 
+    /// Two icon-only buttons at the top-right: Structures panel and Report panel.
+    /// Shown with text labels when there's room, otherwise as icons with an accessibility label.
+    private func panelButtons(labeled: Bool) -> some View {
+        HStack(spacing: Theme.Space.s) {
+            panelButton(icon: "list.bullet.below.rectangle", label: "Structures", active: showOrgans, labeled: labeled) {
+                showOrgans.toggle()
+            }
+            panelButton(icon: "doc.text.magnifyingglass", label: "Report", active: showReport, labeled: labeled) {
+                showReport = true
+            }
+        }
+    }
+
+    private func panelButton(icon: String, label: String, active: Bool, labeled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon).font(.system(size: 14, weight: .semibold))
+                if labeled {
+                    Text(label).font(Theme.ui(12, .semibold)).lineLimit(1)
+                }
+            }
+            .foregroundStyle(active ? Color.white : Theme.text)
+            .padding(.horizontal, labeled ? 12 : 0)
+            .frame(width: labeled ? nil : 36, height: 36)
+            .background(Capsule().fill(active ? Theme.accent.opacity(0.85) : Theme.surfaceHi))
+            .overlay(Capsule().strokeBorder(Theme.stroke))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+
     private func toolRow(dense: Bool) -> some View {
         HStack(spacing: dense ? 6 : Theme.Space.s) {
-            GeneralizableSegmented(selection: $state.activeTool, items: ViewerState.Tool.allCases.map {
-                .init(value: $0, title: nil, icon: $0.gzIcon)
-            }, compact: true, dense: dense)
+            GZIconSegmented(selection: $state.activeTool, items: ViewerState.Tool.allCases.map {
+                .init(value: $0, icon: $0.gzIcon, accessibilityLabel: $0.gzTitle)
+            }, dense: dense)
             windowMenu(dense: dense)
             labelsControl(dense: dense)
             if !dense { Spacer(minLength: 0) }
-            GeneralizableSegmented(selection: layoutBinding, items: ViewerLayout.allCases.map {
-                .init(value: $0, title: nil, icon: $0.gzIcon)
-            }, compact: true, dense: dense)
+            GZIconSegmented(selection: layoutBinding, items: ViewerLayout.allCases.map {
+                .init(value: $0, icon: $0.gzIcon, accessibilityLabel: "\($0.gzTitle) layout")
+            }, dense: dense)
         }
         .fixedSize(horizontal: true, vertical: false)
     }
@@ -99,6 +131,29 @@ struct ViewerToolbar: View {
             .background(Capsule().fill(Theme.surfaceHi.opacity(0.9)))
             .overlay(Capsule().strokeBorder(Theme.stroke))
         }
+        .accessibilityLabel("Window preset")
+        .accessibilityValue(state.window.name)
+    }
+
+    @ViewBuilder
+    private func eyeLabel(dense: Bool) -> some View {
+        let color: Color = state.showLabels ? Theme.accent : Theme.textSecondary
+        let iconName = state.showLabels ? "eye.fill" : "eye.slash"
+        if dense {
+            Image(systemName: iconName)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 32, height: 34)
+                .contentShape(Rectangle())
+        } else {
+            HStack(spacing: 5) {
+                Image(systemName: iconName).font(.system(size: 12, weight: .semibold))
+                Text("Labels").font(Theme.ui(12, .semibold)).lineLimit(1)
+            }
+            .foregroundStyle(color)
+            .padding(.horizontal, 4).frame(height: 34)
+            .contentShape(Rectangle())
+        }
     }
 
     private func labelsControl(dense: Bool) -> some View {
@@ -106,14 +161,13 @@ struct ViewerToolbar: View {
             Button {
                 withAnimation(.snappy) { state.showLabels.toggle() }
             } label: {
-                Image(systemName: state.showLabels ? "eye.fill" : "eye.slash")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(state.showLabels ? Theme.accent : Theme.textSecondary)
-                    .frame(width: dense ? 32 : 34, height: 34)
-                    .contentShape(Rectangle())
+                eyeLabel(dense: dense)
             }
             .buttonStyle(.plain)
             .simultaneousGesture(LongPressGesture().onEnded { _ in showLabelPopover = true })
+            .accessibilityLabel("Labels")
+            .accessibilityValue(state.showLabels ? "On" : "Off")
+            .accessibilityHint("Double tap to toggle. Touch and hold to adjust opacity.")
             if !dense {
             Rectangle().fill(Theme.stroke).frame(width: 1, height: 18)
             Button { showLabelPopover = true } label: {
@@ -124,6 +178,8 @@ struct ViewerToolbar: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Label opacity")
+            .accessibilityValue("\(Int((state.labelOpacity * 100).rounded())) percent")
             }
         }
         .popover(isPresented: $showLabelPopover) {
@@ -145,5 +201,48 @@ struct ViewerToolbar: View {
         }
         .background(Capsule().fill(Theme.surfaceHi.opacity(0.9)))
         .overlay(Capsule().strokeBorder(Theme.stroke))
+    }
+}
+
+/// Icon-only segmented control for the tool and layout pickers. Same visual language as
+/// `GeneralizableSegmented`, but each item carries its own accessibility label so VoiceOver
+/// announces "Navigate" / "Measure" / "2×2 layout" rather than a bare SF Symbol name — the icons
+/// stay unlabeled on screen to fit the row at iPhone Duo width.
+private struct GZIconSegmented<T: Hashable>: View {
+    struct Item { var value: T; var icon: String; var accessibilityLabel: String }
+    @Binding var selection: T
+    var items: [Item]
+    var dense: Bool
+    @Namespace private var ns
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(items.indices, id: \.self) { i in
+                let item = items[i]
+                let on = item.value == selection
+                Button {
+                    withAnimation(.snappy(duration: 0.22)) { selection = item.value }
+                } label: {
+                    Image(systemName: item.icon).font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(on ? Color.white : Theme.textSecondary)
+                        .padding(.horizontal, dense ? 5 : 8)
+                        .frame(height: 28)
+                        .background {
+                            if on {
+                                Capsule().fill(Theme.accent.opacity(0.85))
+                                    .matchedGeometryEffect(id: "pill", in: ns)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.accessibilityLabel)
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+        .padding(3)
+        .background(Capsule().fill(Theme.surfaceHi.opacity(0.9)))
+        .overlay(Capsule().strokeBorder(Theme.stroke))
+        .sensoryFeedback(.selection, trigger: selection)
     }
 }

@@ -133,10 +133,20 @@ struct ViewerView: View {
         }
     }
 
+    /// Plain-language pane name for non-experts; the short code (AX/SAG/COR) is what actually
+    /// fits in the small 2×2 badge, but VoiceOver and the maximised view get the full phrase.
+    private func planeFullName(_ p: Plane) -> String {
+        switch p {
+        case .axial: "Top-down (axial)"
+        case .sagittal: "Side (sagittal)"
+        case .coronal: "Front (coronal)"
+        }
+    }
+
     private func slicePane(_ p: Plane) -> some View {
         let focused = state.layout == .quad && state.focusedPlane == p
         return PaneChrome(
-            title: p.gzTitle, badge: p.gzShort, tint: Theme.planeColor(p), focused: focused,
+            title: planeFullName(p), badge: p.gzShort, tint: Theme.planeColor(p), focused: focused,
             trailing: "\(Int(state.slice(for: p)) + 1)/\(state.sliceCount(for: p))",
             maximised: state.layout != .quad,
             onExpand: { toggleMaximise(p) }
@@ -186,13 +196,17 @@ private struct PaneChrome<Content: View>: View {
             HStack(alignment: .top, spacing: 6) {
                 // The chrome is the only place the plane badge and n/N are drawn; SliceView
                 // draws just orientation letters, and W/L lives in the status bar.
+                // There's only room for the plain-language name once the pane is maximised;
+                // in the small 2×2 grid it stays a short code, but VoiceOver always hears the name.
                 HStack(spacing: 5) {
                     RoundedRectangle(cornerRadius: 2).fill(tint).frame(width: 3, height: 11)
-                    Text(badge).font(Theme.mono(10, .bold)).foregroundStyle(Theme.text)
+                    Text(maximised ? title : badge).font(Theme.mono(10, .bold)).foregroundStyle(Theme.text).lineLimit(1)
                 }
                 .padding(.horizontal, 7).frame(height: 22)
                 .background(Capsule().fill(.black.opacity(0.55)))
                 .allowsHitTesting(false)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(title)
                 Spacer(minLength: 0)
                 if let trailing {
                     Text(trailing).font(Theme.mono(10, .medium)).foregroundStyle(Theme.textSecondary)
@@ -200,6 +214,7 @@ private struct PaneChrome<Content: View>: View {
                         .background(Capsule().fill(.black.opacity(0.55)))
                         .contentTransition(.numericText())
                         .allowsHitTesting(false)
+                        .accessibilityLabel("Slice \(trailing.replacingOccurrences(of: "/", with: " of "))")
                 }
                 Button(action: onExpand) {
                     Image(systemName: maximised ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
@@ -210,6 +225,7 @@ private struct PaneChrome<Content: View>: View {
                         .contentShape(Rectangle().inset(by: -8))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(maximised ? "Restore layout" : "Maximise \(title)")
             }
             .padding(6)
         }
@@ -252,27 +268,36 @@ private struct ViewerStatusBar: View {
         let c = state.cursor
         let hu = state.loaded.ct.hu(at: c)
         let organ = state.loaded.labels?.organ(at: c)
-        HStack(spacing: Theme.Space.m) {
-            Text("\(Int(c.x)),\(Int(c.y)),\(Int(c.z))")
-                .foregroundStyle(Theme.textTertiary)
-            if let hu {
-                Text("\(hu) HU").foregroundStyle(Theme.text)
-            }
+        HStack(spacing: Theme.Space.s) {
+            // Cursor readout: structure name and density, not raw voxel coordinates — those
+            // are internal bookkeeping and mean nothing to a non-expert.
             if let organ {
                 HStack(spacing: 5) {
                     Circle().fill(organ.color).frame(width: 7, height: 7)
                     Text(organ.displayName).font(Theme.ui(11, .medium)).lineLimit(1)
                 }
                 .foregroundStyle(Theme.textSecondary)
+            } else {
+                Text("No structure").font(Theme.ui(11)).foregroundStyle(Theme.textTertiary)
+            }
+            if let hu {
+                Text("·").foregroundStyle(Theme.textTertiary)
+                Text("\(hu) HU").font(Theme.mono(11, .medium)).foregroundStyle(Theme.text)
             }
             Spacer(minLength: 0)
-            Text("W \(Int(state.window.width)) L \(Int(state.window.center))")
-                .foregroundStyle(Theme.textTertiary)
+            // The preset name reads as a sentence ("Brain window"); the W/L numbers stay for
+            // anyone who wants them, de-emphasised since they're jargon to a non-expert.
+            HStack(spacing: 5) {
+                Text("\(state.window.name) window")
+                    .font(Theme.ui(11, .medium)).foregroundStyle(Theme.textSecondary)
+                Text("W\(Int(state.window.width))/L\(Int(state.window.center))")
+                    .font(Theme.mono(9.5)).foregroundStyle(Theme.textTertiary)
+            }
         }
-        .font(Theme.mono(11))
         .lineLimit(1)
         .padding(.horizontal, Theme.Space.l)
         .frame(height: 32)
+        .accessibilityElement(children: .combine)
     }
 }
 
