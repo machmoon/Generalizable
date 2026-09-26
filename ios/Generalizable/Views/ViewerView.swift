@@ -137,11 +137,11 @@ struct ViewerView: View {
         let focused = state.layout == .quad && state.focusedPlane == p
         return PaneChrome(
             title: p.gzTitle, badge: p.gzShort, tint: Theme.planeColor(p), focused: focused,
-            trailing: "\(Int(state.slice(for: p)) + 1)/\(state.sliceCount(for: p))",
+            trailing: "",
             maximised: state.layout != .quad,
             onExpand: { toggleMaximise(p) }
         ) {
-            SliceView(plane: p, state: state, finding: findings.first)   // ring shows only where the slice cuts it
+            SliceView(plane: p, state: state)
         }
         .simultaneousGesture(TapGesture(count: 2).onEnded { toggleMaximise(p) })
         .simultaneousGesture(TapGesture().onEnded { if state.focusedPlane != p { state.focusedPlane = p } })
@@ -184,23 +184,18 @@ private struct PaneChrome<Content: View>: View {
             Theme.pane
             content()
             HStack(alignment: .top, spacing: 6) {
-                // The chrome is the only place the plane badge and n/N are drawn; SliceView
-                // draws just orientation letters, and W/L lives in the status bar.
-                HStack(spacing: 5) {
-                    RoundedRectangle(cornerRadius: 2).fill(tint).frame(width: 3, height: 11)
-                    Text(badge).font(Theme.mono(10, .bold)).foregroundStyle(Theme.text)
+                // SliceView draws plane name, n/N and W/L itself; the chrome only adds the
+                // 3D badge and the expand control (no duplicate labels).
+                if trailing == nil {
+                    HStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 2).fill(tint).frame(width: 3, height: 11)
+                        Text(badge).font(Theme.mono(10, .bold)).foregroundStyle(Theme.text)
+                    }
+                    .padding(.horizontal, 7).frame(height: 22)
+                    .background(Capsule().fill(.black.opacity(0.55)))
+                    .allowsHitTesting(false)
                 }
-                .padding(.horizontal, 7).frame(height: 22)
-                .background(Capsule().fill(.black.opacity(0.55)))
-                .allowsHitTesting(false)
                 Spacer(minLength: 0)
-                if let trailing {
-                    Text(trailing).font(Theme.mono(10, .medium)).foregroundStyle(Theme.textSecondary)
-                        .padding(.horizontal, 7).frame(height: 22)
-                        .background(Capsule().fill(.black.opacity(0.55)))
-                        .contentTransition(.numericText())
-                        .allowsHitTesting(false)
-                }
                 Button(action: onExpand) {
                     Image(systemName: maximised ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
                         .font(.system(size: 10, weight: .bold))

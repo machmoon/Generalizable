@@ -31,8 +31,6 @@ extension Plane {
 struct SliceView: View {
     let plane: Plane
     @Bindable var state: ViewerState
-    /// Guided finding to ring on this slice (nil = none selected).
-    var finding: CaseFinding? = nil
     @AppStorage("generalizable.labelOutline") private var outline = true
 
     private var viewport: SliceViewport {
@@ -54,16 +52,11 @@ struct SliceView: View {
             SliceMetalView(loaded: state.loaded, params: params)
             Crosshair(plane: plane, cursor: state.cursor, viewport: viewport, geometry: state.geometry)
                 .allowsHitTesting(false)
-            if let finding, let c = finding.voxel(in: state.geometry), let r = finding.radiusMM {
-                FindingRing(plane: plane, center: c, radiusMM: Float(r), slice: state.slice(for: plane),
-                            viewport: viewport, geometry: state.geometry)
-                    .allowsHitTesting(false)
-            }
             SliceInteractionLayer(plane: plane, state: state)
             annotations.allowsHitTesting(false)
             if plane == .axial, let ai = state.loaded.ai {
                 VStack { HStack { AICard(state: state, ai: ai); Spacer() }; Spacer() }
-                    .padding(.top, 34).padding(.leading, 6)   // below PaneChrome's badge row
+                    .padding(.top, 24).padding(.leading, 6)
             }
         }
         .background(Color.black)
@@ -112,33 +105,6 @@ private struct Crosshair: View {
             h.move(to: CGPoint(x: p.x + gap, y: p.y)); h.addLine(to: CGPoint(x: size.width, y: p.y))
             ctx.stroke(v, with: .color(vColor.opacity(0.85)), lineWidth: 1)
             ctx.stroke(h, with: .color(hColor.opacity(0.85)), lineWidth: 1)
-        }
-    }
-}
-
-/// Yellow ring where this slice cuts the finding's sphere (radius shrinks away from its centre,
-/// and the ring disappears once the slice leaves the sphere).
-private struct FindingRing: View {
-    let plane: Plane
-    let center: SIMD3<Float>
-    let radiusMM: Float
-    let slice: Float
-    let viewport: SliceViewport
-    let geometry: VolumeGeometry
-
-    var body: some View {
-        Canvas { ctx, _ in
-            guard viewport.viewSize.width > 0 else { return }
-            let n = plane.normalAxis
-            let dMM = abs(slice - center[n]) * geometry.spacing[n]
-            guard dMM < radiusMM else { return }
-            let rMM = (radiusMM * radiusMM - dMM * dMM).squareRoot()
-            var c = center; c[n] = slice
-            var e = c; e[plane.uAxis] += rMM / geometry.spacing[plane.uAxis]
-            let p = viewport.voxelToView(c, geometry), q = viewport.voxelToView(e, geometry)
-            let r = hypot(q.x - p.x, q.y - p.y)
-            ctx.stroke(Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: 2 * r, height: 2 * r)),
-                       with: .color(.yellow), lineWidth: 2)
         }
     }
 }
