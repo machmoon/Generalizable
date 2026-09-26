@@ -62,8 +62,9 @@ struct SliceView: View {
             SliceInteractionLayer(plane: plane, state: state)
             annotations.allowsHitTesting(false)
             if plane == .axial, let ai = state.loaded.ai {
-                VStack { HStack { AICard(state: state, ai: ai); Spacer() }; Spacer() }
-                    .padding(.top, 34).padding(.leading, 6)   // below PaneChrome's badge row
+                // Bottom-left, out of the way of the anatomy and the top badge row.
+                VStack { Spacer(); HStack { AICard(state: state, ai: ai); Spacer() } }
+                    .padding(.leading, 6).padding(.bottom, 6)
             }
         }
         .background(Color.black)
