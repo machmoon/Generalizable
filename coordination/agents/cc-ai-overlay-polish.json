@@ -1,0 +1,22 @@
+{
+  "agent_id": "cc-ai-overlay-polish",
+  "role": "worker",
+  "kind": "claude-subagent",
+  "model": "claude-sonnet-5",
+  "machine": "Overpriced Hardware",
+  "lane": "UI-polish-AI-overlay (Commander: one of 5 parallel UI/UX polish agents; scope = AI overlay on 2D slice panes)",
+  "owns_paths": [
+    "ios/Generalizable/Views/SliceView.swift",
+    "ios/Generalizable/Shaders/Slice.metal",
+    "ios/Generalizable/AI/AICard.swift",
+    "ios/Generalizable/AI/AILoader.swift",
+    "ios/Generalizable/AI/AIProbabilityTrack.swift",
+    "ios/Generalizable/Rendering/ (heatmap-related changes only)"
+  ],
+  "branch": "worktree-agent-a755443d299ebc05b",
+  "handoff": "coordination/handoffs/ai-overlay-polish.md",
+  "session": null,
+  "registered_utc": "2026-09-26T23:17:43Z",
+  "status": "active",
+  "note": "SliceView.swift also appears under cc-lumen-ux's broad 'Views/' ownership; Commander dispatched this exact narrow scope directly as part of a 5-way parallel polish pass, to be reconciled at merge time."
+}
