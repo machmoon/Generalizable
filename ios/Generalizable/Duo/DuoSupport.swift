@@ -223,7 +223,7 @@ struct DuoAdaptiveViewer<Content: View>: View {
                 // Base: the side (sagittal) slice through the finding. The fold tilts the lid's
                 // plane about the patient's left–right axis, which is exactly what a side view
                 // shows as a line: the blue line is the lid's plane, rotating as you fold.
-                SliceView(plane: .sagittal, state: state)
+                SliceView(plane: .sagittal, state: state, showCrosshair: false)
                     .overlay { CutAngleLine(state: state, tilt: lidTilt) }
                     .overlay(alignment: .topLeading) {
                         CornerLabel(title: "SAGITTAL", detail: findings.isEmpty ? "Through the cursor" : "Through finding centre")
@@ -237,7 +237,7 @@ struct DuoAdaptiveViewer<Content: View>: View {
                             .font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.85))
                             .padding(14)
                     }
-                    .overlay(alignment: .bottomTrailing) { LayersCTToggle(state: state).padding(12) }
+                    .overlay(alignment: .bottomTrailing) { LayersCTToggle(state: state).padding(.bottom, 12).padding(.trailing, 40) }   // clear of the slice slider
                     .frame(width: split.second.width, height: split.second.height)
                     .clipped()
                     .offset(x: split.second.minX, y: split.second.minY)
@@ -311,7 +311,7 @@ struct DuoAdaptiveViewer<Content: View>: View {
         .padding(.horizontal, 9).frame(height: 22)
         .background(.ultraThinMaterial, in: Capsule())
         .overlay(Capsule().strokeBorder(.white.opacity(0.15)))
-        let pillW: CGFloat = 64, pillH: CGFloat = 22
+        let pillW: CGFloat = 76, pillH: CGFloat = 22
         let origin: CGPoint
         if reading.posture == .folded {
             origin = split.vertical

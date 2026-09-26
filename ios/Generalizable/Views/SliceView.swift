@@ -33,6 +33,8 @@ struct SliceView: View {
     @Bindable var state: ViewerState
     /// Guided finding to ring on this slice (nil = none selected).
     var finding: CaseFinding? = nil
+    /// The fold's side view draws its own single cut line instead of the crosshair.
+    var showCrosshair = true
     @AppStorage("generalizable.labelOutline") private var outline = true
 
     private var viewport: SliceViewport {
@@ -52,8 +54,10 @@ struct SliceView: View {
     var body: some View {
         ZStack {
             SliceMetalView(loaded: state.loaded, params: params)
-            Crosshair(plane: plane, cursor: state.cursor, viewport: viewport, geometry: state.geometry)
-                .allowsHitTesting(false)
+            if showCrosshair {
+                Crosshair(plane: plane, cursor: state.cursor, viewport: viewport, geometry: state.geometry)
+                    .allowsHitTesting(false)
+            }
             if let finding, let c = finding.voxel(in: state.geometry), let r = finding.radiusMM {
                 FindingRing(plane: plane, center: c, radiusMM: Float(r), slice: state.slice(for: plane),
                             viewport: viewport, geometry: state.geometry)

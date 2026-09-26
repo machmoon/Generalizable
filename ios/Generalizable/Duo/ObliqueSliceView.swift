@@ -60,7 +60,7 @@ struct ObliqueSliceView: View {
 
     /// Same plane basis and field of view as ObliqueRenderer.draw.
     private func ptsPerMM(_ size: CGSize) -> CGFloat {
-        let half = 0.5 * simd_reduce_max(state.geometry.extentMM) * 1.05
+        let half = 0.5 * simd_reduce_max(state.geometry.extentMM) * 1.2
         return CGFloat(min(size.width, size.height) / 2) / CGFloat(half)
     }
 
@@ -70,9 +70,9 @@ struct ObliqueSliceView: View {
         VStack(alignment: .leading, spacing: 3) {
             Text("50 mm").font(.system(size: 9, design: .monospaced)).foregroundStyle(FoldStyle.dim)
             Path { p in
-                p.move(to: .zero); p.addLine(to: CGPoint(x: 50 * k, y: 0))
-                p.move(to: CGPoint(x: 0, y: -3)); p.addLine(to: CGPoint(x: 0, y: 3))
-                p.move(to: CGPoint(x: 50 * k, y: -3)); p.addLine(to: CGPoint(x: 50 * k, y: 3))
+                p.move(to: CGPoint(x: 0, y: 3)); p.addLine(to: CGPoint(x: 50 * k, y: 3))
+                p.move(to: .zero); p.addLine(to: CGPoint(x: 0, y: 6))
+                p.move(to: CGPoint(x: 50 * k, y: 0)); p.addLine(to: CGPoint(x: 50 * k, y: 6))
             }
             .stroke(.white.opacity(0.7), lineWidth: 1)
             .frame(width: 50 * k, height: 6)
@@ -92,8 +92,8 @@ struct ObliqueSliceView: View {
         let k = ptsPerMM(size)
         ForEach(Array(findings.enumerated()), id: \.element.id) { _, f in
             if let v = f.voxel(in: g) {
-                let q = (v - state.cursor) * g.spacing
-                let r = Float(f.radiusMM ?? 10), d = simd_dot(q, n)
+                let q = (v - ObliqueParams.planeCenter(state: state, tilt: Float(tilt))) * g.spacing
+                let r = Float(f.radiusMM ?? 10), d = simd_dot((v - state.cursor) * g.spacing, n)
                 if abs(d) < r {
                     let c = CGPoint(x: size.width / 2 + CGFloat(simd_dot(q, right)) * k,
                                     y: size.height / 2 - CGFloat(simd_dot(q, up)) * k)
@@ -140,6 +140,9 @@ private struct FindingCallout: View {
 
 struct ObliqueParams: Equatable {
     var cursor: SIMD3<Float>
+    /// View centre: the volume's centre projected onto the plane (the plane still passes through
+    /// the cursor/pivot). Centring on the pivot itself pushed the anatomy off-screen.
+    var center: SIMD3<Float>
     var tilt: Float
     var winLow: Float, winHigh: Float
     var labelOpacity: Float
@@ -151,6 +154,7 @@ struct ObliqueParams: Equatable {
 
     @MainActor init(state: ViewerState, tilt: Float) {
         cursor = state.cursor
+        center = Self.planeCenter(state: state, tilt: tilt)
         self.tilt = tilt
         winLow = state.window.low; winHigh = state.window.high
         labelOpacity = state.labelOpacity
@@ -161,6 +165,15 @@ struct ObliqueParams: Equatable {
         selected = state.selectedOrgan?.rawValue ?? 0
         showAI = state.showAI
         aiOpacity = state.aiOpacity
+    }
+
+    @MainActor static func planeCenter(state: ViewerState, tilt: Float) -> SIMD3<Float> {
+        let g = state.geometry, t = tilt * .pi / 180
+        let n = SIMD3<Float>(0, -sin(t), cos(t))
+        let mid = (SIMD3<Float>(Float(g.dims.x), Float(g.dims.y), Float(g.dims.z)) - 1) / 2
+        var d = (mid - state.cursor) * g.spacing
+        d -= simd_dot(d, n) * n
+        return state.cursor + d / g.spacing
     }
 }
 
@@ -249,7 +262,7 @@ final class ObliqueRenderer: NSObject, MTKViewDelegate {
         let right = SIMD3<Float>(-1, 0, 0)
         let up = SIMD3<Float>(0, cos(t), sin(t))
         // Square field of view covering the whole volume, aspect-fitted into the view.
-        let half = 0.5 * simd_reduce_max(g.extentMM) * 1.05
+        let half = 0.5 * simd_reduce_max(g.extentMM) * 1.2   // margin for the corner labels (match ptsPerMM)
         let aspect = Float(size.width / size.height)
         let sx: Float = aspect >= 1 ? 1 / aspect : 1
         let sy: Float = aspect >= 1 ? 1 : aspect
@@ -259,7 +272,7 @@ final class ObliqueRenderer: NSObject, MTKViewDelegate {
         ]
         let m = p.mask
         var u = ObliqueUniforms(
-            originMM: (p.cursor + 0.5) * g.spacing, rightMM: right * half, upMM: up * half, spacing: g.spacing,
+            originMM: (p.center + 0.5) * g.spacing, rightMM: right * half, upMM: up * half, spacing: g.spacing,
             winLow: p.winLow, winHigh: p.winHigh,
             labelOpacity: p.showLabels ? p.labelOpacity : 0, aiOpacity: p.aiOpacity,
             hasLabels: (p.showLabels && tex.labels != nil) ? 1 : 0,
