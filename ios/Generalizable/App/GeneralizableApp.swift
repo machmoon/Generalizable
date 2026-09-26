@@ -11,7 +11,11 @@ struct GeneralizableApp: App {
         return arg == "library" ? nil : arg
     }()
 
+    @State private var pro: ProStore
+
     init() {
+        ProStore.configureSDK()   // RevenueCat, public key from Info.plist (docs/REVENUECAT.md)
+        _pro = State(initialValue: ProStore())
         let nav = UINavigationBarAppearance()
         nav.configureWithTransparentBackground()
         UINavigationBar.appearance().standardAppearance = nav
@@ -22,6 +26,8 @@ struct GeneralizableApp: App {
             LibraryView(autoOpenID: autoOpen)
                 .preferredColorScheme(.dark)
                 .tint(Theme.accent)
+                .environment(pro)
+                .task { pro.start(); await pro.refresh() }
         }
     }
 }
