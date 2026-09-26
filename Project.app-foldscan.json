@@ -15,7 +15,7 @@
     "Generalizable": {
       "deploymentTarget": "26.0",
       "info": {
-        "path": "ios/Generalizable/Info.plist",
+        "path": "App/Info.plist",
         "properties": {
           "CFBundleDisplayName": "Generalizable",
           "CFBundleShortVersionString": "1.0",
@@ -39,19 +39,23 @@
         "PRODUCT_BUNDLE_IDENTIFIER": "app.bitrig.new.8dc46b5e-4822-4579-8164-5376ed092a21",
         "PRODUCT_NAME": "$(TARGET_NAME)",
         "SWIFT_VERSION": "5.0",
-        "TARGETED_DEVICE_FAMILY": "1,2",
-        "SWIFT_STRICT_CONCURRENCY": "minimal",
-        "MTL_LANGUAGE_REVISION": "Metal30"
+        "TARGETED_DEVICE_FAMILY": "1,2"
       },
       "sources": [
         {
-          "path": "ios/Generalizable",
+          "path": "App",
           "excludes": [
-            "Resources/Cases/**"
+            "Cases/**",
+            "AI/**",
+            "Engine/**",
+            "Experience/**",
+            "Import/**",
+            "Models/**",
+            "Views/**"
           ]
         },
         {
-          "path": "ios/Generalizable/Resources/Cases",
+          "path": "App/Cases",
           "type": "folder",
           "buildPhase": "resources"
         }

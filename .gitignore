@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # macOS
 .DS_Store
 .AppleDouble
@@ -47,7 +46,6 @@ data/.venv/
 __pycache__/
 Generalizable.xcodeproj/
 App/Info.plist
-=======
 .env
 node_modules/
 .venv/
@@ -91,4 +89,3 @@ flask-server/data/
 # Runtime lock held by the inference queue worker.
 sessions/inference_queue/.lock
 scans/
->>>>>>> swift-app
