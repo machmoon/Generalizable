@@ -135,6 +135,7 @@ struct OrganListPanel: View {
             if let next = CaseLayers.peelOrder.first(where: { state.visibleOrgans.contains($0) }) {
                 Button("Peel") { withAnimation(.snappy) { _ = state.visibleOrgans.remove(next) } }
                     .font(Theme.ui(13, .semibold))
+                    .accessibilityHint("Hides the outermost visible layer, \(next.displayName)")
                     .padding(.trailing, Theme.Space.s)
             }
             let allOn = !present.isEmpty && Set(present).isSubset(of: state.visibleOrgans)
@@ -151,6 +152,7 @@ struct OrganListPanel: View {
                     .frame(width: 28, height: 28).background(Circle().fill(Theme.surfaceHi))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Close")
             .padding(.leading, Theme.Space.s)
         }
         .padding(.horizontal, Theme.Space.l)
@@ -198,6 +200,7 @@ struct OrganListPanel: View {
                     .frame(width: 36, height: 32).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(visible ? "Hide \(o.displayName)" : "Show \(o.displayName)")
         }
         .padding(.leading, Theme.Space.m).padding(.trailing, Theme.Space.xs)
         .frame(minHeight: 48)
