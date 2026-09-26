@@ -1,10 +1,10 @@
 {
-  "agent_id": "cc-lumen-ux",
+  "agent_id": "cc-gz-ux",
   "role": "worker",
   "kind": "claude-code-session",
   "model": "claude-opus-5-5",
   "machine": "Overpriced Hardware",
-  "lane": "L12-lumen-ux (Daniel: integrate our features into Patrick's ios app + UI revamp)",
+  "lane": "L12-gz-ux (Daniel: integrate our features into Patrick's ios app + UI revamp)",
   "owns_paths": [
     "docs/DEMO_SCRIPT.md",
     "ios/Generalizable/Core/Contracts.swift (CaseLayer/CaseLayers + Organ name/colour override only)",

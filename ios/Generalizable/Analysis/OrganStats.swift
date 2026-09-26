@@ -397,7 +397,7 @@ enum Analysis {
     }
 
     static func plainText(_ r: CaseReport, info: CaseInfo) -> String {
-        var t = "LUMEN STRUCTURED REPORT\nCase: \(info.id)\n"
+        var t = "GENERALIZABLE STRUCTURED REPORT\nCase: \(info.id)\n"
         if !info.metadata.isEmpty {
             t += info.metadata.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }.joined(separator: "  ") + "\n"
         }
