@@ -27,7 +27,8 @@
             "UIInterfaceOrientationPortraitUpsideDown",
             "UIInterfaceOrientationLandscapeLeft",
             "UIInterfaceOrientationLandscapeRight"
-          ]
+          ],
+          "RevenueCatAPIKey": "$(REVENUECAT_API_KEY)"
         }
       },
       "platform": "iOS",
@@ -41,13 +42,15 @@
         "SWIFT_VERSION": "5.0",
         "TARGETED_DEVICE_FAMILY": "1,2",
         "SWIFT_STRICT_CONCURRENCY": "minimal",
-        "MTL_LANGUAGE_REVISION": "Metal30"
+        "MTL_LANGUAGE_REVISION": "Metal30",
+        "REVENUECAT_API_KEY": "appl_REPLACE_WITH_PUBLIC_KEY"
       },
       "sources": [
         {
           "path": "ios/Generalizable",
           "excludes": [
-            "Resources/Cases/**"
+            "Resources/Cases/**",
+            "Generalizable.storekit"
           ]
         },
         {
@@ -56,7 +59,26 @@
           "buildPhase": "resources"
         }
       ],
-      "type": "application"
+      "type": "application",
+      "dependencies": [
+        {
+          "package": "RevenueCat",
+          "product": "RevenueCat"
+        },
+        {
+          "package": "RevenueCat",
+          "product": "RevenueCatUI"
+        }
+      ],
+      "scheme": {
+        "storeKitConfiguration": "ios/Generalizable/Generalizable.storekit"
+      }
+    }
+  },
+  "packages": {
+    "RevenueCat": {
+      "url": "https://github.com/RevenueCat/purchases-ios-spm",
+      "from": "5.0.0"
     }
   }
 }

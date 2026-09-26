@@ -9,13 +9,17 @@ settings:
     SWIFT_STRICT_CONCURRENCY: minimal
     CODE_SIGNING_ALLOWED: "NO"
     MTL_LANGUAGE_REVISION: Metal30
+packages:
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios-spm
+    from: 5.0.0
 targets:
   Generalizable:
     type: application
     platform: iOS
     sources:
       - path: Generalizable
-        excludes: ["Resources/Cases/**"]
+        excludes: ["Resources/Cases/**", "Generalizable.storekit"]
       - path: Generalizable/Resources/Cases
         type: folder
         buildPhase: resources
@@ -25,9 +29,20 @@ targets:
         UILaunchScreen: {}
         CFBundleDisplayName: Generalizable
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        RevenueCatAPIKey: $(REVENUECAT_API_KEY)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.patliu.generalizable
+        # RevenueCat PUBLIC Apple SDK key (appl_...). Never put a secret key here. See docs/REVENUECAT.md.
+        REVENUECAT_API_KEY: appl_REPLACE_WITH_PUBLIC_KEY
+    dependencies:
+      - package: RevenueCat
+        product: RevenueCat
+      - package: RevenueCat
+        product: RevenueCatUI
+    scheme:
+      testTargets: [GeneralizableTests]
+      storeKitConfiguration: Generalizable/Generalizable.storekit
   GeneralizableTests:
     type: bundle.unit-test
     platform: iOS

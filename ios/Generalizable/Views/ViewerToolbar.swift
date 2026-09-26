@@ -11,6 +11,7 @@ struct ViewerToolbar: View {
     @Binding var showReport: Bool
 
     @State private var showLabelPopover = false
+    @Environment(ProStore.self) private var pro
 
     var body: some View {
         VStack(spacing: Theme.Space.s) {
@@ -107,10 +108,12 @@ struct ViewerToolbar: View {
         Menu {
             ForEach(presets) { p in
                 Button {
-                    state.window = p
+                    if !p.requiresPro || pro.require() { state.window = p }
                 } label: {
                     if state.window == p {
                         Label("\(p.name)   W \(Int(p.width)) · L \(Int(p.center))", systemImage: "checkmark")
+                    } else if p.requiresPro && !pro.isPro {   // Pro preset (ProPaywall.swift)
+                        Label("\(p.name)   W \(Int(p.width)) · L \(Int(p.center))", systemImage: "lock.fill")
                     } else {
                         Text("\(p.name)   W \(Int(p.width)) · L \(Int(p.center))")
                     }

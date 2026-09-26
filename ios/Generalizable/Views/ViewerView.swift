@@ -54,6 +54,7 @@ struct ViewerView: View {
         .preferredColorScheme(.dark)
         .onAppear(perform: applyCaseDefaults)
         .task { _ = await OrganCentroids.stats(for: state.loaded) }   // warm the organ panel
+        .proPaywallSheet(enabled: !showOrgans && !showReport)   // Pro upsell (Store/ProPaywall.swift)
         .sheet(isPresented: $showOrgans) {
             OrganListPanel(state: state)
                 .presentationDetents([.fraction(0.42), .large])

@@ -90,8 +90,11 @@ struct ReportPanel: View {
                 Text("Generated from the segmentation by fixed rules. Not a diagnosis.")
                     .font(.caption2).foregroundStyle(.secondary)
             }
+
+            ProAccountSection()   // Generalizable Pro status + Restore purchases
         }
         .listStyle(.insetGrouped)
+        .proPaywallSheet()
     }
 
     // MARK: AI findings (model output bundled with the case; see AI/AILoader.swift)

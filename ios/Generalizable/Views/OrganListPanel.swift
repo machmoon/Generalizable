@@ -79,6 +79,7 @@ struct OrganListPanel: View {
     @Bindable var state: ViewerState
     @State private var stats: [Organ: OrganCentroid]?
     @Environment(\.dismiss) private var dismiss
+    @Environment(ProStore.self) private var pro
 
     private var present: [Organ] { stats.map { Array($0.keys) } ?? [] }
     private var lesions: [Organ] { present.filter(\.isLesion).sorted { $0.displayName < $1.displayName } }
@@ -91,6 +92,7 @@ struct OrganListPanel: View {
     var body: some View {
         VStack(spacing: 0) {
             header
+                .proPaywallSheet()   // Peel upsell presents over this sheet
             if stats == nil {
                 VStack(spacing: Theme.Space.m) {
                     ProgressView()
@@ -133,7 +135,9 @@ struct OrganListPanel: View {
             Spacer()
             // Cases with a layers.json peel order: hide the outermost layer still showing.
             if let next = CaseLayers.peelOrder.first(where: { state.visibleOrgans.contains($0) }) {
-                Button("Peel") { withAnimation(.snappy) { _ = state.visibleOrgans.remove(next) } }
+                Button { if pro.require() { withAnimation(.snappy) { _ = state.visibleOrgans.remove(next) } } } label: {
+                    HStack(spacing: 3) { Text("Peel"); ProLockBadge() }   // Pro (ProPaywall.swift)
+                }
                     .font(Theme.ui(13, .semibold))
                     .accessibilityHint("Hides the outermost visible layer, \(next.displayName)")
                     .padding(.trailing, Theme.Space.s)

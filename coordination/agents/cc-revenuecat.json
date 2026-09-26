@@ -1,0 +1,20 @@
+{
+  "agent_id": "cc-revenuecat",
+  "role": "worker",
+  "kind": "claude-subagent",
+  "model": "claude-opus-5-5",
+  "machine": "Overpriced Hardware",
+  "lane": "L14-revenuecat (Generalizable Pro subscriptions, Devpost RevenueCat track)",
+  "owns_paths": [
+    "ios/Generalizable/Store/",
+    "ios/Generalizable/Generalizable.storekit",
+    "docs/REVENUECAT.md",
+    "ios/project.yml (packages/scheme/RevenueCat key only)"
+  ],
+  "branch": "feature/revenuecat",
+  "handoff": null,
+  "session": null,
+  "registered_utc": "2026-09-26T23:30:00Z",
+  "status": "done",
+  "note": "Small surgical gate edits only in Views/ViewerToolbar, Views/OrganListPanel, Views/ReportPanel, Views/ViewerView, Duo/DuoSupport, App/GeneralizableApp."
+}
