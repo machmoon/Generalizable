@@ -127,6 +127,7 @@ struct DuoAdaptiveViewer<Content: View>: View {
     /// Put the cross-section on the other half, for devices/simulators that report the halves
     /// the other way round (`-gzSwapHalves YES`, or the switch in the hinge panel).
     @AppStorage("gzSwapHalves") private var swapHalves = false
+    @Environment(ProStore.self) private var pro   // Generalizable Pro (Store/)
 
     private var usingSim: Bool { simEnabled || realDegrees == nil }
     private var reading: HingeReading {
@@ -166,6 +167,9 @@ struct DuoAdaptiveViewer<Content: View>: View {
             findings = CaseFindings.load(for: state.loaded.info) ?? []
         }
         .onChange(of: mapping) { _, _ in apply(reading) }
+        // Folded: a Pro upsell opens in the base half (below) instead of a sheet.
+        .onChange(of: reading.posture, initial: true) { _, p in pro.foldedBaseAvailable = p == .folded }
+        .onDisappear { pro.foldedBaseAvailable = false }
         .sensoryFeedback(.impact(weight: .medium), trigger: HingeMath.detent(at: reading.degrees)) { _, new in new != nil }
         .sensoryFeedback(.selection, trigger: reading.posture)
         // Hidden trigger to re-show the pill on a real Duo; won't collide with slice drags.
@@ -210,6 +214,9 @@ struct DuoAdaptiveViewer<Content: View>: View {
                 ObliqueSliceView(state: state, tilt: lidTilt, hinge: reading.degrees, findings: findings)
                     .frame(width: split.first.width, height: split.first.height)
                     .clipped()
+                    .overlay(alignment: .bottomLeading) {   // Pro presenter: card for the person facing the lid
+                        if pro.presenterMode { PresenterLidCard(title: state.loaded.info.title, finding: findings.first) }
+                    }
                     .offset(x: split.first.minX, y: split.first.minY)
                 SliceView(plane: .axial, state: state)
                     .overlay { FindingRings(state: state, findings: findings) }
@@ -219,6 +226,7 @@ struct DuoAdaptiveViewer<Content: View>: View {
                         // Matches the cut line's own colour so "the blue line" is unambiguous.
                         LensTag(text: "Drag the blue line to move the cut", color: Color(red: 0.27, green: 0.81, blue: 0.88)).padding(10)
                     }
+                    .overlay(alignment: .topTrailing) { PresenterToggle().padding(10) }   // Pro
                     .frame(width: split.second.width, height: split.second.height)
                     .clipped()
                     .offset(x: split.second.minX, y: split.second.minY)
@@ -235,9 +243,15 @@ struct DuoAdaptiveViewer<Content: View>: View {
                     .overlay(alignment: .bottom) { hintLine }
                     .offset(x: split.second.minX, y: split.second.minY)
             }
+            if pro.showsBasePaywall {   // Duo-native paywall: base half; the lid keeps the cross-section
+                ProBasePaywall()
+                    .frame(width: split.second.width, height: split.second.height)
+                    .offset(x: split.second.minX, y: split.second.minY)
+            }
             HingeSeam(rect: split.seam, vertical: split.vertical, degrees: reading.degrees)
                 .allowsHitTesting(false)
         }
+        .animation(.snappy(duration: 0.3), value: pro.showsBasePaywall)
     }
 
     /// Cut mode needs the ray-caster (it honours `clipNormal`); meshes don't clip.
