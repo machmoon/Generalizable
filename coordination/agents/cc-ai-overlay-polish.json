@@ -17,6 +17,6 @@
   "handoff": "coordination/handoffs/ai-overlay-polish.md",
   "session": null,
   "registered_utc": "2026-09-26T23:17:43Z",
-  "status": "active",
+  "status": "done",
   "note": "SliceView.swift also appears under cc-lumen-ux's broad 'Views/' ownership; Commander dispatched this exact narrow scope directly as part of a 5-way parallel polish pass, to be reconciled at merge time."
 }
