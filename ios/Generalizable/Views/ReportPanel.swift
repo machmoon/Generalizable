@@ -62,6 +62,9 @@ struct ReportPanel: View {
             }
 
             if let ai = state.loaded.ai { aiSection(ai) }
+            if let vlm = VLMDescription.load(caseFolder: state.loaded.info.ctURL?.deletingLastPathComponent()) {
+                vlmSection(vlm)
+            }
 
             Section("Findings") {
                 if r.lesions.isEmpty {
@@ -159,6 +162,29 @@ struct ReportPanel: View {
         } header: {
             Label("AI Findings", systemImage: "sparkles")
         }
+    }
+
+    /// General vision-language models on the same case (AI/VLMDescription.swift, PRD A11), shown
+    /// next to the specialist model so the contrast is visible: told nothing, they miss the bleed.
+    @ViewBuilder private func vlmSection(_ v: VLMDescription) -> some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                if let full = v.full_slices_blind {
+                    Label(full, systemImage: "eye.slash").font(.callout)
+                }
+                Text("\(v.shortModel) · \(v.promptDisclosure)")
+                    .font(.caption.weight(.semibold))
+                ForEach(Array((v.result.observations ?? []).enumerated()), id: \.offset) { _, o in
+                    Text("“\(o)”").font(.callout)
+                }
+                if let s = v.result.structures, !s.isEmpty {
+                    Text("Named: " + s.joined(separator: ", ")).font(.caption).foregroundStyle(.secondary)
+                }
+                Text("Via Hugging Face, cached for offline use\(v.result.confidence.map { " · confidence \($0)" } ?? ""). \(v.result.caveat ?? "Automated research description, not a diagnosis.")")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 4)
+        } header: { Text("General vision models") }
     }
 
     private func aiModelLine(_ ai: AIResult) -> String {
