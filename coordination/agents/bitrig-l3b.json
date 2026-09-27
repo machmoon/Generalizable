@@ -9,5 +9,7 @@
   "branch": "agent/bitrig/l3b (see ORCHESTRATION: Bitrig)",
   "handoff": "coordination/handoffs/L3b-ui.md",
   "registered_utc": "2026-09-26T19:29:15Z",
-  "status": "not-yet-registered: Bitrig must confirm by committing its own update to this file"
+  "status": "stopped",
+  "stopped_utc": "2026-09-26",
+  "stopped_reason": "stale: no live session; cleanup after hackathon"
 }

@@ -9,5 +9,7 @@
   "branch": "demo/addenda-and-pipeline",
   "handoff": "(report to Commander only)",
   "registered_utc": "2026-09-26T19:29:15Z",
-  "status": "pending"
+  "status": "stopped",
+  "stopped_utc": "2026-09-26",
+  "stopped_reason": "stale: no live session; cleanup after hackathon"
 }

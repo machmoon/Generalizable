@@ -5,10 +5,19 @@
   "model": "claude-opus-5-5",
   "machine": "Overpriced-Hardware",
   "lane": "commander",
-  "owns_paths": ["docs/","coordination/","AGENTS.md","CLAUDE.md","App/Cases/body/","App/Cases/head/"],
+  "owns_paths": [
+    "docs/",
+    "coordination/",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "App/Cases/body/",
+    "App/Cases/head/"
+  ],
   "branch": "demo/addenda-and-pipeline",
   "handoff": "coordination/COMMANDER.md",
   "session": "dqi26-a2",
   "registered_utc": "2026-09-26T19:29:15Z",
-  "status": "active"
+  "status": "stopped",
+  "stopped_utc": "2026-09-26",
+  "stopped_reason": "stale: no live session; cleanup after hackathon"
 }

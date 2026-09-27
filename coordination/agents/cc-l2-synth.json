@@ -5,9 +5,15 @@
   "model": "claude-sonnet-5",
   "machine": "Overpriced-Hardware",
   "lane": "L2-synth",
-  "owns_paths": ["data/synth/","App/Cases/sun/","App/Cases/circuit/"],
+  "owns_paths": [
+    "data/synth/",
+    "App/Cases/sun/",
+    "App/Cases/circuit/"
+  ],
   "branch": "demo/addenda-and-pipeline",
   "handoff": "coordination/handoffs/L2-synth.md",
   "registered_utc": "2026-09-26T19:29:15Z",
-  "status": "active"
+  "status": "stopped",
+  "stopped_utc": "2026-09-26",
+  "stopped_reason": "stale: no live session; cleanup after hackathon"
 }

@@ -5,10 +5,15 @@
   "model": "claude-sonnet-5",
   "machine": "Overpriced-Hardware",
   "lane": "L4-viz-reference",
-  "owns_paths": ["scripts/viz/", "docs/viz/"],
+  "owns_paths": [
+    "scripts/viz/",
+    "docs/viz/"
+  ],
   "branch": "demo/addenda-and-pipeline",
   "handoff": "coordination/handoffs/L4-viz.md",
   "session": null,
   "registered_utc": "2026-09-26T20:05:00Z",
-  "status": "active"
+  "status": "stopped",
+  "stopped_utc": "2026-09-26",
+  "stopped_reason": "stale: no live session; cleanup after hackathon"
 }

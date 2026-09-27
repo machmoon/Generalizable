@@ -12,5 +12,7 @@
   "handoff": "coordination/handoffs/L3c-render-duo.md",
   "session": "bitrig-l3c-duo (Bitrig project ee4d1be2-b47c-47da-9bf9-4176745d6a59)",
   "registered_utc": "2026-09-26T20:05:57Z",
-  "status": "active"
+  "status": "stopped",
+  "stopped_utc": "2026-09-26",
+  "stopped_reason": "stale: no live session; cleanup after hackathon"
 }
