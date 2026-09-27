@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <style>.ink{fill:#0F172A}@media (prefers-color-scheme:dark){.ink{fill:#fff}}</style>
+  <rect class="ink" x="40" y="72" width="144" height="36" rx="6"/>
+  <rect x="72" y="120" width="112" height="16" fill="#68ACE5"/>
+  <rect class="ink" x="72" y="148" width="144" height="36" rx="6"/>
+</svg>

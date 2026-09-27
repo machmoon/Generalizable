@@ -1,0 +1,21 @@
+[Unit]
+Description=BodyMaps Live Rooms WebSocket Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=visitor
+Group=visitor
+WorkingDirectory=/home/visitor/PanTS-Viewer/flask-server
+Environment=LIVE_ROOMS_ALLOWED_ORIGINS=https://bodymaps.wse.jhu.edu
+EnvironmentFile=-/etc/bodymaps/live-rooms.env
+ExecStart=/home/visitor/PanTS-Viewer/flask-server/.venv/bin/python live_rooms_ws.py
+UMask=0077
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

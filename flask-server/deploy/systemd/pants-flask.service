@@ -1,0 +1,47 @@
+[Unit]
+Description=BodyMaps Flask/Gunicorn Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=visitor
+Group=visitor
+WorkingDirectory=/home/visitor/PanTS-Viewer/flask-server
+UMask=0077
+
+# Keep the production secrets and dataset paths in the existing .env file.
+EnvironmentFile=-/home/visitor/PanTS-Viewer/flask-server/.env
+
+# Application-level load controls.
+Environment=INFERENCE_MAX_PENDING=4
+Environment=INFERENCE_QUEUE_MAX_PENDING=8
+Environment=OMP_NUM_THREADS=1
+Environment=MKL_NUM_THREADS=1
+Environment=OPENBLAS_NUM_THREADS=1
+Environment=NUMEXPR_NUM_THREADS=1
+Environment=EPAI_N_PROC_DA=4
+Environment=SHAPEKIT_CPU_NUM=4
+
+# Use the production Conda environment, not the system Python.
+ExecStart=/home/visitor/.conda/envs/PanTS_backend/bin/gunicorn \
+    --worker-class gthread \
+    --workers 1 \
+    --threads 8 \
+    --bind 127.0.0.1:8000 \
+    --timeout 3600 \
+    --access-logfile - \
+    --error-logfile - \
+    --chdir /home/visitor/PanTS-Viewer/flask-server \
+    app:app
+
+# Restart after a crash, but keep the service inside conservative host limits.
+Restart=always
+RestartSec=5
+CPUQuota=400%
+MemoryMax=48G
+TasksMax=128
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

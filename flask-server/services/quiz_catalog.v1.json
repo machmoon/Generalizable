@@ -1,0 +1,110 @@
+{
+  "catalog_id": "bodymaps-vqa-v1",
+  "catalog_version": 1,
+  "generator_version": "bodymaps-vqa-generator/1.0.0",
+  "validator_version": "bodymaps-vqa-validator/1.0.0",
+  "packs": [
+    {
+      "pack_id": "radworld-case-35-v1",
+      "version": 1,
+      "case_id": "35",
+      "title": "Case 35 · Pancreatic focus",
+      "difficulty": "easy",
+      "tags": ["pancreas", "tumor-positive", "localization", "measurement", "case-35"],
+      "provenance": {
+        "dataset_id": "PanTS_00000035",
+        "source": "PanTS combined CT and segmentation inventory",
+        "note": "Preserved reviewed Case 35 connected-question chain."
+      },
+      "generator_version": "case35-curated/1.0.0",
+      "validator_version": "bodymaps-vqa-validator/1.0.0",
+      "approval": {
+        "status": "approved",
+        "ledger_id": "case35-reviewed-baseline",
+        "reviewed_at": "2026-08-06T00:00:00Z",
+        "reviewer": "BodyMaps education review"
+      },
+      "ground_truth": {
+        "label_profile_id": "case35-reviewed-v1",
+        "label_mapping": {
+          "pancreas": [17, 18, 19, 20],
+          "lesion": [28]
+        },
+        "lesion_present": true,
+        "lesion_labels": [28],
+        "lesion_centroid_lps": [260.25, 224.625, -290.0],
+        "crosshair_lps": [260.25, 224.625, -290.0],
+        "pancreatic_region": "tail",
+        "max_axial_diameter_mm": 23.3,
+        "reference_measurement_lps": [[261.0, 236.25, -290.0], [259.5, 213.0, -290.0]],
+        "reveal_mask": {
+          "kind": "labels",
+          "source_labels": [28],
+          "output_label": 1
+        }
+      },
+      "questions": [
+        {
+          "id": "organ",
+          "prompt": "Which organ is under the synchronized crosshair?",
+          "choices": [
+            {"id": "pancreas", "label": "Pancreas", "claims": {}},
+            {"id": "liver", "label": "Liver", "claims": {}},
+            {"id": "spleen", "label": "Spleen", "claims": {}},
+            {"id": "stomach", "label": "Stomach", "claims": {}}
+          ],
+          "correct_choice_id": "pancreas",
+          "explanation": "The crosshair is positioned within the pancreas.",
+          "viewer_cue": {"clear_overlays": true, "crosshair_lps": [260.25, 224.625, -290.0]}
+        },
+        {
+          "id": "presence",
+          "prompt": "Is a focal pancreatic abnormality present?",
+          "choices": [
+            {"id": "yes", "label": "Yes, a focal abnormality is present", "claims": {"lesion_present": true}},
+            {"id": "no", "label": "No focal abnormality is present", "claims": {"lesion_present": false}},
+            {"id": "diffuse", "label": "Only diffuse pancreatic change is present", "claims": {"lesion_present": false}},
+            {"id": "outside", "label": "The finding is centered outside the pancreas", "claims": {"lesion_present": false}}
+          ],
+          "correct_choice_id": "yes",
+          "explanation": "There is a discrete focal abnormality within the pancreas.",
+          "viewer_cue": {"clear_overlays": true, "crosshair_lps": [260.25, 224.625, -290.0]}
+        },
+        {
+          "id": "location",
+          "prompt": "Where is the focal abnormality located within the pancreas?",
+          "choices": [
+            {"id": "tail", "label": "Pancreatic tail", "claims": {"lesion_present": true, "pancreatic_region": "tail"}},
+            {"id": "body", "label": "Pancreatic body", "claims": {"lesion_present": true, "pancreatic_region": "body"}},
+            {"id": "head", "label": "Pancreatic head", "claims": {"lesion_present": true, "pancreatic_region": "head"}},
+            {"id": "not_applicable", "label": "No focal abnormality to localize", "claims": {"lesion_present": false}}
+          ],
+          "correct_choice_id": "tail",
+          "explanation": "The focal abnormality is centered in the pancreatic tail.",
+          "viewer_cue": {"clear_overlays": true, "crosshair_lps": [260.25, 224.625, -290.0]}
+        },
+        {
+          "id": "conclusion",
+          "prompt": "Which conclusion best summarizes the case?",
+          "choices": [
+            {"id": "focal_tail_23mm", "label": "Focal pancreatic-tail abnormality, approximately 23 mm at its widest axial extent", "claims": {"lesion_present": true, "pancreatic_region": "tail"}},
+            {"id": "focal_head_23mm", "label": "Focal pancreatic-head abnormality, approximately 23 mm at its widest axial extent", "claims": {"lesion_present": true, "pancreatic_region": "head"}},
+            {"id": "diffuse_change", "label": "Diffuse pancreatic abnormality without a focal lesion", "claims": {"lesion_present": false}},
+            {"id": "no_abnormality", "label": "No focal pancreatic abnormality", "claims": {"lesion_present": false}}
+          ],
+          "correct_choice_id": "focal_tail_23mm",
+          "explanation": "The best conclusion is a focal pancreatic-tail abnormality measuring about 23 mm on its widest axial slice.",
+          "viewer_cue": {"clear_overlays": true, "crosshair_lps": [260.25, 224.625, -290.0]},
+          "reveal_viewer_cue": {
+            "show_lesion_overlay": true,
+            "crosshair_lps": [260.25, 224.625, -290.0],
+            "reference_measurement_lps": [[261.0, 236.25, -290.0], [259.5, 213.0, -290.0]],
+            "reference_diameter_mm": 23.3,
+            "lesion_label": 1,
+            "mesh_organ_id": 22
+          }
+        }
+      ]
+    }
+  ]
+}

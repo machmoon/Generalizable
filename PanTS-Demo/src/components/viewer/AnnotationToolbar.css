@@ -1,0 +1,793 @@
+.atb {
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 18px;
+    /* Same plain translucent black as SegmentsPopup.css's .segpop, kept in
+       sync with it, so this ribbon reads as a distinct surface from the
+       main toolbar's dark-gray tint (.vp-topbar in VisualizationPage.css).
+       A faint blue-tinted top border (below) is what actually tells the
+       two apart at a glance once it's open — see .atb--horizontal. */
+    background: rgba(34, 34, 42, 0.62);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.75);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+.atb__btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    /* Slowed so the active-tool white background reads as a fade rather
+       than a hard flash, since target changes can now deselect a tool
+       automatically rather than only via a deliberate click. */
+    transition: background 0.36s ease, color 0.36s ease;
+}
+
+.atb__btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.atb__btn.is-active {
+    background: #ffffff;
+    color: #08090b;
+}
+
+/* TODO: some custom icons hardcode fill/stroke="#fff" instead of
+   currentColor, so they stay white (invisible) on an active button's
+   white background. Fix at the icon source rather than forcing color
+   with CSS !important, which hides icons broadly instead of targeting
+   just the affected ones. */
+
+.atb__tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 160px;
+    max-width: 220px;
+    padding: 8px 10px;
+    border-radius: 9px;
+    background: #16181d;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s, transform 0.12s;
+    z-index: 60;
+}
+
+.atb__tooltip strong {
+    font-size: 12px;
+    color: #fff;
+}
+
+.atb__tooltip span:last-child {
+    font-size: 11px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.atb__btn:hover .atb__tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+
+
+.atb-flyout__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.atb-flyout__label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    justify-content: space-between;
+}
+
+.atb-flyout__val {
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.atb-flyout__range {
+    width: 220px;
+    /* Custom track + thumb so the slider matches the dark control cluster
+       around it rather than falling back to native OS chrome. */
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    outline: none;
+    cursor: pointer;
+}
+
+.atb-flyout__range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.atb-flyout__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    margin-top: -5.5px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #002d72;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.1s;
+}
+
+.atb-flyout__range::-webkit-slider-thumb:hover {
+    transform: scale(1.08);
+}
+
+.atb-flyout__range:active::-webkit-slider-thumb {
+    background: #002d72;
+    border-color: #68ACE5;
+}
+
+.atb-flyout__range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.atb-flyout__range::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: #002d72;
+}
+
+.atb-flyout__range::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #002d72;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.atb-flyout__range:focus-visible {
+    box-shadow: 0 0 0 3px rgba(104, 172, 229, 0.35);
+    border-radius: 999px;
+}
+
+.atb-flyout__range:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* Houses the slider and typable number box as one visual row, plain
+   within the panel (like a MenuRow) rather than its own boxed rectangle. */
+.atb-flyout__slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 2px 6px;
+}
+
+.atb-flyout__slider-row .atb-flyout__range {
+    flex: 1;
+}
+
+.atb-flyout__slider-readout {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.atb-flyout__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+    gap: 14px;
+    min-width: 380px;
+}
+
+.atb-flyout__col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.atb-flyout__radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+}
+
+.atb-flyout__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+}
+
+.atb-flyout__span-all {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+}
+
+.atb-flyout__mm-input {
+    width: 90px;
+    margin-top: 4px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 6px;
+    color: #fff;
+    padding: 4px 6px;
+    font-size: 12px;
+}
+
+/* ============================================================
+   DOCKED ANNOTATION PANEL — Word/Google-Docs style hierarchy,
+   now docked to the TOP so the CT viewer pane is never obscured
+   (a right-edge rail used to sit on top of the canvas; a ribbon
+   only ever eats into the top of the page, and the viewer is
+   expected to reserve --atb-ribbon-h of top padding for it):
+
+   .atb-shell         grandfather — fixed strip docked to the top
+                       edge, full viewport width, natural height.
+                       Never draggable, never floats loose over
+                       the canvas.
+   .atb--horizontal    father — the icon ribbon (always visible),
+                       one row, exactly like a Word/Docs toolbar.
+   .atb-corner-panel  daughter — contextual options for whichever
+                       tool is active. Opens as a second row
+                       directly beneath the ribbon, full width,
+                       inside the same shell — not a separate
+                       floating window, and it grows downward by
+                       only as much as its content needs rather
+                       than claiming the full viewport height.
+   ============================================================ */
+
+.atb-shell {
+    position: fixed;
+    top: var(--vp-topbar-h, 0px);
+    /* Centered floating popout rather than a full-width docked strip —
+       the shell shrinks to fit its widest row (the icon ribbon) and sits
+       horizontally centered over the viewer. */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100vw - 40px);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    /* Gradual open/close — the ribbon stays mounted and only toggles the
+       is-open/is-closed class below. clip-path is what actually produces
+       centered popout's open/close fade. */
+    transition: opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.atb-shell.is-open {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.atb-shell.is-closed {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-6px);
+}
+
+.atb-shell.is-open>* {
+    pointer-events: auto;
+}
+
+/* Exposed so the viewer container can reserve exactly this much top
+   padding/margin and guarantee the ribbon (in either state) never sits
+   over the canvas. Update both values together if button sizing changes. */
+:root {
+    /* Matches .vp-iconbtn (main toolbar's chrome buttons) at 38px square,
+       so this ribbon reads as the same toolbar language continued on a
+       second row. Value = actual rendered height (6px top + 6px bottom
+       padding + 36px button + 1px bottom border = 49px), not a rounded
+       guess — this is the ribbon's only promise to the CT viewport about
+       how much space to reserve above it (see
+       `margin-top: var(--atb-ribbon-h, 42px)` on .vp-stage in
+       VisualizationPage.css). Keep in sync with the padding/button-size
+       rules in .atb--horizontal below if either changes. */
+    --atb-ribbon-h: 49px;
+    /* The contextual options strip reserves this height at all times
+       while the ribbon is open, so opening/closing a tool's options never
+       resizes the viewer (same idea as Word/Docs' stable second-row
+       height). This is a cap, not a fixed content height —
+       .atb-corner-panel__body can overflow onto the viewer rather than
+       growing this value. */
+    --atb-panel-h: 34px;
+    /* Matches SegmentsPopup's POPUP_WIDTH (320px); the panel sits flush
+       against the viewport edge like AISidebar, so no extra margin. */
+    --atb-segpanel-w: 320px;
+}
+
+/* Horizontal ribbon — a small centered popout that hugs its icon buttons
+   (38px buttons, tight gap) rather than stretching full-width.
+   `position: relative` is needed so `.atb--horizontal__pointer` (the
+   up-arrow connecting this ribbon back to the pencil button, added below)
+   can be absolutely positioned against this box rather than the page. */
+.atb--horizontal {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 12px;
+    /* Brightened from 0.28 -> 0.55 opacity and thickened from 1px -> 1.5px
+       so the ribbon's blue outline reads clearly against the CT viewer,
+       instead of nearly disappearing at a glance (it should read as
+       obviously the same "open" accent color as SegmentsPopup's edge). */
+    border: 1.5px solid rgba(104, 172, 229, 0.55);
+    width: auto;
+    height: auto;
+    min-height: var(--atb-ribbon-h);
+    max-width: calc(100vw - 40px);
+    box-sizing: border-box;
+    box-shadow: 0 18px 44px -20px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(104, 172, 229, 0.22) inset;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+/* Pointer connecting the ribbon back to the Brush icon it visually sits
+   above — a plain solid-blue up chevron rather than FlyoutPrimitives'
+   dark rotated-square connector, since that square reads as a near-black
+   diamond sitting on the ribbon's now-brighter blue outline.
+   `position: fixed` (not `absolute` off the ribbon) is deliberate: this
+   element is rendered as a SIBLING of .atb--horizontal, not a child of
+   it, because that box mixes overflow-x:auto with overflow-y:visible,
+   which per spec silently upgrades the visible axis to auto too — the
+   same footgun already called out on .atb-corner-panel__body above —
+   and would invisibly clip anything positioned outside its own bounds.
+   `left`/`top` are set inline per-render in viewport coordinates from
+   the Brush button's and ribbon's measured positions (see the
+   pointer-tracking effect in AnnotationToolbar.tsx). */
+.atb--horizontal__pointer {
+    position: fixed;
+    /* Anchored by its OWN top edge (not bottom) since `top` above is now
+       measured from the pencil button's bottom edge downward — the
+       chevron should start right where the button ends, not float with a
+       gap above it. */
+    transform: translateX(-50%);
+    color: #3499ff;
+    pointer-events: none;
+    /* Was z-index 51. `top` is computed as the pencil button's OWN bottom
+       edge + 2px — but .vp-topbar (the main toolbar the button lives in)
+       has 12px of bottom padding beyond the button itself, so that
+       position sits well inside the topbar's still-painted box, not
+       below it. .vp-topbar sets z-index: 55 (see its own comment: "Above
+       .atb-shell's z-index (50) so this bar's downward-pointing tool
+       tooltips render on top of the annotation ribbon"), which put the
+       topbar's own semi-opaque, blurred background ON TOP of this
+       chevron — completely hiding it, even though its computed
+       left/top were correct. Bumping this above the topbar's z-index
+       (55) fixes the actual visibility bug. */
+    z-index: 56;
+}
+
+/* Sized and colored to match .vp-topbar .vp-tool (main toolbar's icon
+   buttons): 36px square, 10px radius, visible resting background/border,
+   same active-state white-fill/black-icon treatment — so the annotation
+   ribbon reads as the same toolbar language continued on a second row. */
+.atb--horizontal .atb__btn {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
+    /* Fallbacks matter: these --vp-* tokens are defined globally in
+       src/index.css. Without a fallback, an unresolved var() makes
+       `color` invalid, which renders icons (drawn with currentColor)
+       invisible against the button background even though the box and
+       its active-state fill still show up correctly. */
+    background: var(--vp-panel, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    color: var(--vp-text, rgba(255, 255, 255, 0.85));
+    /* Re-declares background/color from .atb__btn, so the timing needs
+       repeating here too or the browser falls back to an instant
+       transition for the properties this selector's specificity controls. */
+    transition: background 0.36s ease, border-color 0.36s ease, color 0.36s ease;
+}
+
+.atb--horizontal .atb__btn:hover {
+    background: var(--vp-hover, rgba(255, 255, 255, 0.1));
+    border-color: var(--vp-border-strong, rgba(255, 255, 255, 0.18));
+}
+
+.atb--horizontal .atb__btn.is-active {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #08090b;
+}
+
+/* Icon size prop (`<Icon size={20} />` in AnnotationToolbar.tsx) already
+   matches the main toolbar's icons, so no CSS override needed here. */
+
+/* Bumped contrast so a greyed-out tool still reads as "exists, just off"
+   rather than disappearing against the ribbon background. */
+.atb--disabled .atb__btn {
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.42);
+    cursor: not-allowed;
+}
+
+/* Ribbon sits above the panel, so tooltips open downward. Kept for any
+   caller still using the left-opening variant. */
+.atb__tooltip--left {
+    bottom: calc(100% + 10px);
+    top: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) translateY(4px);
+}
+
+.atb--horizontal .atb__btn:hover .atb__tooltip--left {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Contextual options panel — opens when a tool is selected. A full-width
+   strip docked beneath the ribbon (same fixed shell, so it opens below
+   the toolbar rather than overlapping it), laid out in a single row that
+   only scrolls horizontally as a last-resort fallback on narrow screens.
+   Height is measured live from content (see the ResizeObserver in
+   AnnotationToolbar.tsx that keeps --atb-panel-h in sync), so the viewer
+   always reserves exactly the right space below it. */
+.atb-corner-panel {
+    z-index: 50;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+    background: #16181d;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 18px 44px -20px rgba(0, 0, 0, 0.75);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    color: #fff;
+    box-sizing: border-box;
+    overflow: visible;
+    --vp-text: #ffffff;
+    --vp-text-dim: rgba(255, 255, 255, 0.7);
+    --vp-text-faint: rgba(255, 255, 255, 0.5);
+    --vp-border: rgba(255, 255, 255, 0.09);
+    --vp-panel-strong: rgba(255, 255, 255, 0.07);
+    --vp-hover: rgba(255, 255, 255, 0.08);
+}
+
+/* Floating variant — rendered inside FlyoutPrimitives' FlyoutPanel
+   (position: fixed, anchored under whichever tool icon opened it). A
+   small rectangle that overlays the viewer rather than pushing it down. */
+.atb-corner-panel--floating {
+    width: auto;
+    /* Matches FlyoutPanel's minWidth prop (200); shrinks to fit content
+       and only widens for panels that need it (e.g. a slider). */
+    min-width: 200px;
+    max-width: 480px;
+    /* No box chrome here — this renders inside FlyoutPanel's own portaled
+       box (.atb-pop__panel), which already supplies the background,
+       border, radius, and shadow. .atb-corner-panel is neutralized here
+       so this is purely a layout wrapper, one flat surface total. */
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* A touch more room than the docked variant, since this reads inside just
+   one box (.atb-pop__panel) rather than nested double-box padding. */
+.atb-corner-panel--floating .atb-corner-panel__body {
+    padding: 8px 6px;
+}
+
+.atb-corner-panel .seg-effect {
+    padding: 0;
+    border-top: none;
+    gap: 10px;
+}
+
+.atb-corner-panel__placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.atb-corner-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    flex-shrink: 0;
+    min-height: 22px;
+}
+
+.atb-corner-panel__title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.atb-corner-panel__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.atb-corner-panel__icon-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    display: flex;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.atb-corner-panel__icon-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Body flows left-to-right in wrapped groups (like Word's ribbon groups)
+   rather than a vertical stack, since the panel is a wide, short strip.
+   Individual field blocks (.seg-effect, .atb-flyout__grid, MaskingSelect,
+   etc.) keep their own internal layout; this arranges them side-by-side
+   with a divider. */
+.atb-corner-panel__body {
+    /* Both axes are `visible`, never `auto`/`scroll`: per spec, browsers
+       silently upgrade a `visible` axis to `auto` once the other axis is
+       anything but `visible`, so mixing them caused dropdowns/tooltips
+       taller than the panel to get clipped by an invisible scroll box
+       instead of floating free. Nothing in this panel should ever scroll
+       or clip — a control group wider than the ribbon just overlaps the
+       viewer to its right instead of triggering a scrollbar. */
+    overflow: visible;
+    padding: 3px 16px;
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px 20px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    min-height: var(--atb-panel-h);
+    box-sizing: border-box;
+}
+
+.atb-corner-panel__body>* {
+    flex-shrink: 0;
+}
+
+.atb-corner-panel__body>*:not(:last-child) {
+    padding-right: 20px;
+    border-right: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+
+.atb-flyout__grid--scissors {
+    min-width: 200px;
+    grid-template-columns: 1fr;
+}
+
+.atb-flyout__radio svg.atb-scissors-icon {
+    flex-shrink: 0;
+}
+
+.atb-flyout__hint {
+    font-size: 11px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.atb-flyout__hint-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #000000;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.vp-livewire-close-pulse {
+    animation: vp-livewire-pulse 0.9s ease-in-out infinite;
+    transform-origin: center;
+}
+
+@keyframes vp-livewire-pulse {
+
+    0%,
+    100% {
+        opacity: 0.55;
+        r: 12;
+    }
+
+    50% {
+        opacity: 0.15;
+        r: 16;
+    }
+}
+
+.atb-flyout__draw-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.atb-flyout__draw-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 7px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 7px 8px;
+    cursor: pointer;
+}
+
+.atb-flyout__draw-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.atb-flyout__draw-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.atb-flyout__draw-btn--cancel:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.18);
+    border-color: rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+}
+
+
+
+.atb-flyout__target-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.atb-flyout__target-btn.is-active {
+    background: #fff;
+    border-color: #fff;
+    color: #08090b;
+}
+
+.atb-flyout__target-toggle-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.atb-flyout__target-btn {
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.atb-flyout__target-btn.is-active {
+    color: #08090b;
+}
+
+.atb-flyout__magnet-toggle {
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.atb-flyout__magnet-toggle:has(input:checked) {
+    background: rgba(104, 172, 229, 0.14);
+    border-color: rgba(104, 172, 229, 0.4);
+}
+
+/* ============================================================================
+   Guided-flow Exit / Start over buttons (Grow-from-seeds, Copy/Fill-across-
+   slices) — previously plain inline styles with no hover/press feedback, so
+   they read as flat/dead next to every other interactive control in the
+   ribbon. Same pill shape and sizing as before, now with real states.
+   ============================================================================ */
+.atb-guided__btn {
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    white-space: nowrap;
+    transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease, transform 0.08s ease;
+}
+
+.atb-guided__btn:active {
+    transform: scale(0.96);
+}
+
+.atb-guided__btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(104, 172, 229, 0.55);
+}
+
+.atb-guided__btn--startover {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.atb-guided__btn--startover:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.24);
+    color: #ffffff;
+}
+
+.atb-guided__btn--exit {
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.atb-guided__btn--exit:hover {
+    background: rgba(2, 31, 163, 0.22);
+    border-color: rgba(105, 121, 241, 0.55);
+}
+
+.atb-guided__btn--continue {
+    background: #002d72;
+    border: 1px solid #002d72;
+    color: #ffffff;
+}
+
+.atb-guided__btn--continue:hover {
+    background: #013a91;
+    border-color: #013a91;
+}
+

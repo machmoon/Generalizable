@@ -1,0 +1,134 @@
+/* Upgrade / limit-reached dialog. Same light card vocabulary as the auth popup
+   (AuthModal.css) so a plan wall doesn't look like it came from a different
+   product than the sign-in it sits next to. */
+
+
+.upg-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	background: rgba(0, 0, 0, 0.42);
+	backdrop-filter: blur(2px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+
+.upg-card {
+	position: relative;
+	width: 100%;
+	max-width: 400px;
+	background: #ffffff;
+	border-radius: 18px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+	padding: 30px 28px 24px;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	color: #111111;
+}
+
+.upg-close {
+	position: absolute;
+	top: 12px;
+	right: 14px;
+	background: none;
+	border: none;
+	font-size: 22px;
+	line-height: 1;
+	color: #b0b0b0;
+	cursor: pointer;
+	padding: 4px;
+}
+.upg-close:hover {
+	color: #111111;
+}
+
+.upg-title {
+	font-size: 19px;
+	font-weight: 600;
+	margin: 0 0 8px;
+	padding-right: 20px;
+	line-height: 1.3;
+}
+
+.upg-detail {
+	font-size: 13.5px;
+	line-height: 1.55;
+	color: #6a6a6a;
+	margin: 0;
+}
+
+.upg-plan {
+	margin-top: 20px;
+	padding: 16px;
+	border-radius: 12px;
+	background: #fafafa;
+	border: 1px solid rgba(0, 0, 0, 0.07);
+}
+.upg-plan-name {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 10px;
+}
+.upg-plan-points {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.upg-plan-points li {
+	position: relative;
+	padding-left: 16px;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #4a4a4a;
+}
+.upg-plan-points li::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 7px;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: #002d72;
+}
+
+.upg-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 22px;
+}
+.upg-primary {
+	width: 100%;
+	padding: 11px;
+	border-radius: 10px;
+	background: #002d72;
+	border: 1px solid #002d72;
+	color: #ffffff;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+.upg-primary:hover {
+	background: #00399a;
+}
+.upg-secondary {
+	width: 100%;
+	padding: 11px;
+	border-radius: 10px;
+	background: none;
+	border: none;
+	color: #6a6a6a;
+	font-family: inherit;
+	font-size: 13.5px;
+	cursor: pointer;
+}
+.upg-secondary:hover {
+	color: #111111;
+}

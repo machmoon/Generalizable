@@ -1,0 +1,36 @@
+name: Lumen
+options:
+  bundleIdPrefix: dev.patliu
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    CODE_SIGNING_ALLOWED: "NO"
+    MTL_LANGUAGE_REVISION: Metal30
+targets:
+  Lumen:
+    type: application
+    platform: iOS
+    sources:
+      - path: Lumen
+        excludes: ["Resources/Cases/**"]
+      - path: Lumen/Resources/Cases
+        type: folder
+        buildPhase: resources
+    info:
+      path: Lumen/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: Lumen
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.patliu.lumen
+  LumenTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [LumenTests]
+    dependencies:
+      - target: Lumen

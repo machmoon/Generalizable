@@ -1,0 +1,44 @@
+/* ── Library panel container ── */
+.libraryCard {
+  background: #f5f5f5;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 24px 32px;
+  margin-bottom: 24px;
+}
+
+/* ── Ambient background orbs ── */
+.orb1 {
+  position: absolute;
+  border-radius: 50%;
+  top: -160px;
+  left: -160px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%);
+  filter: blur(40px);
+}
+.orb2 {
+  position: absolute;
+  border-radius: 50%;
+  top: 35%;
+  right: -192px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+  filter: blur(40px);
+}
+.orb3 {
+  position: absolute;
+  border-radius: 50%;
+  bottom: 80px;
+  left: 33%;
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.025) 0%, transparent 70%);
+  filter: blur(40px);
+}
+
+@media (max-width: 767px) {
+  .libraryCard { padding: 16px; }
+}

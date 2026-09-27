@@ -1,0 +1,608 @@
+/* The little downward-chevron trigger. Small, quiet, sits directly next to
+   a tool icon (or next to a row inside a flyout for a grandchild) — it's
+   not meant to compete visually with the icon it's attached to. */
+.atb-pop__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--vp-text-dim, rgba(255, 255, 255, 0.5));
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 6px;
+    /* Color/background stay a touch snappier (they're just a hover cue),
+       but the flip itself matches the grandchild expand-chevron's own
+       0.42s — both are "which way is this about to open" indicators and
+       should feel like the same gesture at the same speed. */
+    transition: color 0.2s ease, background 0.2s ease, transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.atb-pop__arrow:hover {
+    color: var(--vp-text, #ffffff);
+    background: var(--vp-hover, rgba(255, 255, 255, 0.08));
+}
+
+.atb-pop__arrow.is-open {
+    color: var(--vp-text, #ffffff);
+    transform: rotate(180deg);
+}
+
+/* Grandchild arrows sit inside a row (not next to a 36px-tall icon), so
+   they're shorter to match the row height instead of stretching it. */
+.atb-pop__arrow--row {
+    height: 28px;
+}
+
+/* The popup rectangle itself — styled after a Google-Docs-style context
+   menu: one flat surface, a thin hairline border, a soft shadow, and
+   generous internal breathing room, rather than a bordered box floating
+   inside another bordered box. Portaled to <body> so it always renders
+   above the CT viewer regardless of any ancestor's overflow/stacking
+   context (same reasoning as AnnotationToolbar's own ribbon portal). */
+.atb-pop__panel {
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    border-radius: 10px;
+    /* Slightly lighter than pure panel-black and with a hairline border
+       that reads as ONE flat card, not a box nested inside another box —
+       matches the Google Docs context-menu look used everywhere else. */
+    background: #202124;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.35);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    color: var(--vp-text, #ffffff);
+    /* Grows out from the corner nearest its anchor (the icon that opened
+       it) instead of just popping into place — `left`/`top` are already
+       set to sit flush under (or beside) that icon, so scaling from that
+       same corner reads as the panel unfurling from under the icon rather
+       than sliding in from an unrelated edge of the screen. */
+    transform-origin: top left;
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+    animation: atb-pop-grow-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   POINTER — the little arrow connecting a flyout panel back to the
+   ribbon icon it opened from, so it's unambiguous which button in the
+   horizontal toolbar produced it (same rotated-square technique as
+   SegmentsPopup's .segpop__form-flyout-arrow, but with a Hopkins-blue
+   border instead of a plain hairline one, since here it's doing double
+   duty as an "originates from this button" cue rather than just a
+   cosmetic connector). Sits on the panel itself, positioned per-instance
+   via the inline `top`/`left` FlyoutPanel computes off the anchor's own
+   center — see the `pointer` calc in FlyoutPanel's compute().
+   ============================================================ */
+.atb-pop__pointer {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #202124;
+    border-left: 2px solid #3499ff;
+    border-top: 2px solid #3499ff;
+    border-radius: 3px 0 0 0;
+    z-index: 1;
+}
+
+/* Below-anchored panel: pointer sits on the top edge, rotated to point
+   straight up at the icon above it. */
+.atb-pop__pointer--top {
+    top: -6.5px;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+/* Right-anchored (grandchild) panel: pointer sits on the left edge,
+   rotated a quarter turn further so the same top-left border pair now
+   points left, at the row that spawned it. */
+.atb-pop__pointer--left {
+    left: -6.5px;
+    transform: translateY(-50%) rotate(-45deg);
+}
+
+.atb-pop__panel.is-closing {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+    /* No entrance animation while closing — only the transition above,
+       so it always eases back OUT from wherever it currently is instead
+       of restarting the grow-in keyframe. */
+    animation: none;
+}
+
+@keyframes atb-pop-grow-in {
+    from {
+        opacity: 0;
+        transform: scale(0.86);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Any "settings surface" nested a level deeper inside a panel (a slider +
+   apply button living inside a MenuColumn row, for instance) should read
+   as part of the SAME flat surface as the panel around it, not as its own
+   separate inset rectangle — this is what fixes the old "rectangle inside
+   a rectangle" look. Use this instead of ad-hoc borders/backgrounds. */
+.atb-pop__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 6px 4px;
+}
+
+.atb-pop__section+.atb-pop__section {
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Grandchild panels (opens to the right of the row that spawned it) read as
+   a single column of options rather than the row-of-groups layout the
+   first-level flyout uses — a drill-down, not a second ribbon. */
+.atb-pop__panel--right {
+    flex-direction: column;
+    align-items: stretch;
+    /* Anchored to the left of its spawning row (see FlyoutPanel's
+       placement="right" math), so it should grow out from ITS left edge
+       instead of the default top-left used by the below-anchored panels. */
+    transform-origin: top left;
+}
+
+.atb-pop__panel--below {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* A column of icon-only choices inside a flyout (Hollow's 3 surfaces,
+   Margin's grow/shrink, Logical Operators' 5 ops, Grow-from-Seeds' 2
+   scopes) — same icon-button language as the ribbon/seg-effect rows, just
+   stacked instead of side-by-side. */
+.atb-pop__col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* One row inside a column layout: the icon button on the left, its
+   grandchild-triggering arrow on the right, so the whole row reads as one
+   selectable unit with an obvious "more settings" affordance. */
+.atb-pop__col-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Full-viewer guided-walkthrough overlay (Grow-from-Seeds step-by-step,
+   Fill-Between-Slices, Copy-Across-Slices, Islands' "click a segment"
+   prompt). Sits above the CT canvas, dims it slightly, and carries its own
+   instruction/error surface — NOT the same thing as atb-pop__panel, which
+   is only ever a small settings rectangle. */
+.atb-pop__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 24px;
+    background: rgba(8, 9, 11, 0.28);
+    pointer-events: none;
+}
+
+.atb-pop__overlay-card {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(20, 20, 24, 0.94);
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 13px;
+}
+
+.atb-pop__overlay-error {
+    pointer-events: auto;
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.14);
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+    font-size: 12.5px;
+}
+
+/* ============================================================
+   GOOGLE-DOCS-STYLE TEXT MENU — MenuColumn/MenuRow (FlyoutPrimitives.tsx).
+   Plain text rows instead of icon buttons: Margin, Hollow, Islands, and
+   the Scissors operation picker all use this instead of rolling their own
+   list markup. A row either opens a grandchild to its right (trailing
+   chevron) or fires a direct one-shot action (no chevron).
+   ============================================================ */
+.atb-menu-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    min-width: 190px;
+}
+
+.atb-menu-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--vp-text, #ffffff);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 13px;
+    text-align: left;
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.atb-menu-row:hover:not(:disabled) {
+    background: rgba(104, 172, 229, 0.14);
+}
+
+.atb-menu-row.is-active {
+    background: rgba(104, 172, 229, 0.2);
+    color: #fff;
+    font-weight: 600;
+}
+
+.atb-menu-row:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.atb-menu-row__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* A checkbox-carrying row (Scissors' "Magnetic snap") rendered as a
+   <label> so the whole row toggles it, styled identically to a plain
+   MenuRow — same height/hover/font — so it reads as one consistent list
+   instead of a differently-shaped control breaking the column's rhythm. */
+.atb-menu-row--checkbox {
+    cursor: pointer;
+
+}
+.atb-menu-row_.check {
+    stroke: #3b82f6;
+}
+
+.atb-menu-row__checkbox-input {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    accent-color: #3499ff;
+    cursor: pointer;
+}
+
+.atb-menu-row__chevron {
+    flex-shrink: 0;
+    color: var(--vp-text-dim, rgba(255, 255, 255, 0.5));
+    transition: transform 0.15s;
+}
+
+/* The expand-in-place chevron (GrandchildRow) rotates flat like the
+   arrow trigger's own .is-open state — a right-pointing "opens
+   elsewhere" arrow would be misleading once nothing opens elsewhere. */
+.atb-menu-row__chevron.is-open {
+    transform: rotate(180deg);
+    color: var(--vp-text, #ffffff);
+}
+
+/* ============================================================
+   GRANDCHILD EXPAND CHIP — GrandchildRow's own trigger glyph, now that
+   its body opens to the RIGHT as a card (see .atb-menu-expand__body)
+   rather than dropping open inline beneath the row. Deliberately housed
+   in its own small rounded chip instead of a bare inline glyph like
+   `.atb-menu-row__chevron` or ActionButton's `.atb-action-btn__arrow` —
+   both of THOSE sit flush against the row/button text with no
+   background of their own, which is exactly what made a row that OPENS
+   A PANEL (Remove small, every Logical Operators row) visually
+   indistinguishable at a glance from a row that PERFORMS AN EDIT
+   immediately (Islands' "Remove picked", Margin's Grow/Shrink). The
+   chip gives "opens a panel" a background, a border, and a color shift
+   on open that neither of the other two chevrons carry. */
+.atb-menu-row__expand-chip {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: var(--vp-text-dim, rgba(255, 255, 255, 0.5));
+    transition: background 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+}
+
+.atb-menu-row__expand-chip.is-open {
+    background: rgba(0, 45, 114, 0.35);
+    border-color: rgba(104, 172, 229, 0.5);
+    color: #3499ff;
+}
+
+.atb-menu-row:hover:not(:disabled) .atb-menu-row__expand-chip:not(.is-open) {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--vp-text, #ffffff);
+}
+
+/* Points right at rest — the direction the card is about to open in —
+   and rotates to point left once open, reading as "this is the way
+   back". Slower and gentler than a UI micro-transition has any real
+   need to be, on purpose: this is the one motion in the row the eye
+   directly tracks, so it's the one most worth not rushing. */
+.atb-menu-row__expand-chevron {
+    transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.atb-menu-row__expand-chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.atb-menu-row__check {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    color: #68ACE5;
+    animation: atb-check-pop 0.15s ease-out;
+}
+
+@keyframes atb-check-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================================
+   SIDE-OPENING GRANDCHILD — GrandchildRow's expanded body (Remove
+   small in Islands, every row in Logical Operators). Previously this
+   dropped open as an inline accordion directly beneath its own row,
+   pushing every row below it further down the column each time one
+   opened — with several grandchildren stacked in one menu (Logical
+   Operators has five), opening one shoved the rest of the list around
+   in a way that read as the whole panel rearranging itself rather
+   than "one small settings drawer appearing". It now opens as its
+   own flat card to the RIGHT of the row that spawned it instead,
+   exactly like a first-level flyout opening off a ribbon icon — the
+   column of rows it came from never moves, gains height, or
+   reflows. `.atb-menu-expand` anchors it (needs position:relative on
+   the row wrapper); the card is absolutely positioned off that
+   anchor so it overlaps rather than displaces.
+   ============================================================ */
+.atb-menu-expand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.atb-menu-expand__body {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    z-index: 95;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 8px;
+    min-width: 200px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #202124;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.35);
+    /* Slid + faded in from the row's edge, slower and gentler than the
+       old 0.12s vertical drop so a second grandchild opening (once the
+       first one has already closed) doesn't feel like a flicker. */
+    transform-origin: left center;
+    animation: atb-menu-expand-in-right 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes atb-menu-expand-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(-10px) scaleX(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scaleX(1);
+    }
+}
+
+/* Closing is instant at the DOM level (React unmounts the body the
+   moment a different row's arrow is clicked) — there's no exit
+   animation to soften without the component itself keeping the old
+   grandchild mounted for a beat while the new one fades in. See the
+   note about GrandchildRow/FlyoutPrimitives.tsx below for the JS-side
+   half of "closing one to open another should be gradual too". */
+
+/* ============================================================
+   DIVIDER — the one line between a slider and the button/row group
+   beneath it in a flyout (Margin, Smoothing, Hollow, Level Tracing,
+   Islands' "Remove small" panel, ...). Deliberately a touch brighter
+   than the hairline dividers used elsewhere (e.g. .atb-menu-row__check
+   surroundings) so it reads as an intentional section break, not just
+   ambient border noise.
+   ============================================================ */
+.atb-menu-divider {
+    height: 1px;
+    margin: 2px 2px 4px;
+    background: rgba(255, 255, 255, 0.16);
+    border: none;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   ACTION LIST / ACTION BUTTON — one-shot "do this now" actions
+   (Margin's Grow/Shrink, Smoothing's Smooth, Islands' operations,
+   Grow-from-Seeds' scope pick). Styled like ApplyButton — solid white
+   pill, black text — so it's unmistakably a BUTTON that performs an
+   edit, never confusable with a MenuRow's plain-text MODE row.
+   ============================================================ */
+/* Single explicit column sized to `max-content`: CSS grid gives every row
+   in that column the SAME track width — the width of whichever button's
+   text is longest — instead of each button sizing independently to its
+   own text (ragged) or stretching to the full flyout width (the old
+   blocky look). `justify-items: stretch` fills that shared track exactly,
+   `justify-content: start` keeps the whole column left-aligned instead of
+   centered/stretched across the flyout. */
+.atb-action-list {
+    display: grid;
+    grid-template-columns: max-content;
+    justify-content: start;
+    justify-items: stretch;
+    gap: 8px;
+}
+
+.atb-action-list+.atb-action-list {
+    margin-top: 10px;
+}
+
+.atb-action-list+.atb-menu-divider {
+    margin-top: 6px;
+}
+
+/* Soft, bordered pill — same quiet-chip language as .segpop__new (the
+   "Add class" button) rather than a solid white slab. Sized to its own
+   text (see .atb-action-list above), not stretched full-width. */
+.atb-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.1s ease, width 0.15s ease;
+    box-sizing: border-box;
+    /* Keeps digits a fixed width so labels that update live off a slider
+       (e.g. MarginPanel's "Grow by 1.5mm") resize smoothly instead of the
+       button jittering wider/narrower on every keystroke of the value. */
+    font-variant-numeric: tabular-nums;
+}
+
+.atb-action-btn:hover:not(:disabled) {
+    background: rgba(104, 172, 229, 0.14);
+    border-color: rgba(104, 172, 229, 0.45);
+    color: #ffffff;
+}
+
+.atb-action-btn:active:not(:disabled) {
+    transform: scale(0.99);
+}
+
+.atb-action-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.atb-action-btn__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Quiet by default — this is a hint that the row performs an action, not
+   a primary visual element, so it sits dim until hovered/focused. */
+.atb-action-btn__arrow {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform 0.22s ease, color 0.22s ease;
+}
+
+.atb-action-btn:hover:not(:disabled) .atb-action-btn__arrow {
+    color: rgba(255, 255, 255, 0.85);
+    transform: translateX(1px);
+}
+
+.atb-action-btn__spinner {
+    flex-shrink: 0;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #ffffff;
+    animation: atb-action-spin 0.7s linear infinite;
+}
+
+@keyframes atb-action-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Success beat — Hopkins blue, same brand blue used everywhere else
+   (.seg-effect__icon-btn--primary, the spirit-blue swatch, etc). Held on
+   screen for a moment by the caller before the flyout starts its own
+   fade/shrink-out, so the confirmation actually gets seen instead of
+   disappearing in the same frame it appears. */
+.atb-action-btn.is-success {
+    background: rgba(104, 172, 229, 0.16);
+    border-color: rgba(104, 172, 229, 0.55);
+    color: #ffffff;
+    cursor: default;
+    /* is-success pairs with `disabled` on the button (ApplyButton disables
+       while showing success), so .atb-action-btn:disabled's opacity: 0.4
+       was washing out the checkmark/label for the whole success beat. */
+    opacity: 1;
+}
+
+.atb-action-btn__check {
+    flex-shrink: 0;
+    color: #3499ff;
+    animation: atb-action-check-in 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes atb-action-check-in {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

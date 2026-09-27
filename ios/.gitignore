@@ -1,0 +1,3 @@
+Lumen.xcodeproj/
+Lumen/Resources/Cases/*
+!Lumen/Resources/Cases/.keep

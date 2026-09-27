@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  pull_request: # run on all PRs regardless of target branch
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    defaults:
+      run:
+        working-directory: PanTS-Demo
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: PanTS-Demo/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      # Advisory only: the repo has pre-existing lint errors unrelated to any one
+      # PR. Surfaced here as annotations; flip continue-on-error off once clean.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Unit + smoke tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  backend-security:
+    name: Backend security tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flask-server
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Dependency-light on purpose: the auth + job store need only SQLAlchemy +
+      # Flask-SQLAlchemy + alembic + argon2 + Authlib, so we skip the full
+      # requirements.txt (heavy: nibabel/scipy) and install just what these fast
+      # tests need. numpy is required because constants.py imports it; requests
+      # because Authlib's Flask client imports it.
+      - name: Install test deps
+        run: python -m pip install --upgrade pip pytest werkzeug SQLAlchemy Flask-SQLAlchemy alembic argon2-cffi Authlib requests flask-cors numpy scipy nibabel openpyxl pillow python-dotenv reportlab websockets scikit-image pandas trimesh
+
+      # Catches syntax errors anywhere in the backend (api_blueprint.py etc.)
+      # without installing the heavy runtime deps - nothing else in CI parses
+      # these files, so a bad merge could otherwise ship an unimportable app.
+      - name: Python syntax check
+        run: python -m compileall -q .
+
+      - name: Path-safety unit tests
+        run: python -m pytest tests/unit/test_path_safety.py -v
+
+      # User-dataset admission gatekeeper: quotas, dedup, CT/segmentation validity,
+      # promotion into the PanTS-mirroring layout.
+      - name: User-dataset gatekeeper unit tests
+        run: python -m pytest tests/unit/test_user_dataset.py -v
+
+      # Chunked-upload staging area: which chunks the server still holds (what a
+      # resuming client checks its cursor against) and the stale-upload sweep.
+      - name: Chunk-store unit tests
+        run: python -m pytest tests/unit/test_chunk_store.py -v
+
+      # SQLite-backed inference job store: leasing/claim exclusivity, cancellation,
+      # boot-time reap, legacy import, and job ownership.
+      - name: Job-store unit tests
+        run: python -m pytest tests/unit/test_job_store.py -v
+
+      # Accounts: argon2 hashing, sessions (create/resolve/expire/revoke), and the
+      # register -> cookie -> me -> logout endpoint flow + require_auth guard.
+      - name: Auth unit + endpoint tests
+        run: python -m pytest tests/unit/test_auth_store.py tests/unit/test_email_verification.py tests/functional/test_auth_endpoints.py -v
+
+      # OAuth: account linking rules (incl. refusing to link an unverified
+      # provider email to an existing account) and the provider/start/callback routes.
+      - name: OAuth unit + endpoint tests
+        run: python -m pytest tests/unit/test_oauth_linking.py tests/functional/test_oauth_endpoints.py -v
+
+      - name: Guest gating endpoint tests
+        run: python -m pytest tests/functional/test_guest_gating.py -v
+
+      # Plan limits: which models a plan may run, the rolling daily quota, the
+      # concurrency slot, and the assistant allowance. These gate real work, so a
+      # regression here silently hands out free GPU time.
+      - name: Plan-limit unit tests
+        run: python -m pytest tests/unit/test_plan_store.py -v
+
+      - name: Live Rooms unit and websocket tests
+        run: python -m pytest tests/unit/test_live_room_store.py tests/unit/test_live_quiz.py -v
+
+      - name: Live quiz platform integration tests
+        run: python -m pytest tests/unit/test_quiz_platform.py -k "room_freezes_pack or v2_pack_completes" -v
+
+      # All migrations must apply cleanly against a fresh SQLite DB and round-trip.
+      - name: Alembic migration smoke
+        env:
+          DATABASE_URL: sqlite:///ci_migration_check.db
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # gitleaks scans full history, not just the tip
+
+      # Gitleaks CLI is MIT (the paid license only covers gitleaks-action on org
+      # repos, which this is - so we run the container directly). -u matches the
+      # host uid so git inside the container doesn't hit "dubious ownership".
+      # History was verified clean (295 commits) before this became blocking.
+      - name: Run gitleaks
+        run: |
+          docker run --rm -u "$(id -u):$(id -g)" \
+            -v "${{ github.workspace }}:/repo" \
+            ghcr.io/gitleaks/gitleaks:latest \
+            git /repo --no-banner --redact
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: PanTS-Demo/package-lock.json
+
+      # Advisory: flags known CVEs in dependencies without blocking the merge.
+      - name: npm audit (frontend)
+        working-directory: PanTS-Demo
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: pip-audit (backend)
+        working-directory: flask-server
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip-audit -r requirements.txt
+        continue-on-error: true

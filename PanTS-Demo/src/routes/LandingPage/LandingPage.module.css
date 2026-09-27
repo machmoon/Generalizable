@@ -1,0 +1,156 @@
+/* ===== LandingPage.module.css ===== */
+
+/* ---------- Keyframes ---------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Root container ---------- */
+/* Theme: BodyMaps brand tokens — ink primary (fills/CTAs), orange strictly as accent. */
+.root {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto; /* short viewports scroll instead of clipping the hero */
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  color: #111111;
+}
+
+.statGroup {
+  display: flex;
+  align-items: stretch;
+}
+
+/* ---------- Centered Hero ---------- */
+.hero {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  padding-bottom: 100px;
+  animation: fadeInUp 0.7s cubic-bezier(.2,.8,.2,1) both;
+}
+.heroTitle {
+  font-size: clamp(64px, 12vw, 132px);
+  font-weight: 700;
+  color: #002D72;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 0;
+}
+.heroTitleAlt {
+  color: #111111;
+}
+.heroSubtitle {
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 400;
+  color: #8f8f8f;
+  letter-spacing: -0.01em;
+  margin: 22px 0 0;
+}
+/* One short paragraph so a first-time visitor knows what this is. Sits under
+   the stats row; secondary to the hero on purpose (small, muted, narrow). */
+.heroOverview {
+  max-width: 60ch;
+  margin: 36px auto 0;
+  font-size: clamp(15px, 1.15vw, 17px);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--muted);
+  letter-spacing: -0.005em;
+}
+
+/* ---------- Hero Stats Row ---------- */
+.heroStats {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin-top: 40px;
+}
+.heroStatItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 44px;
+}
+.heroStatValue {
+  font-size: 34px;
+  font-weight: 700;
+  color: #002D72;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.heroStatLabel {
+  font-size: 11px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  color: #6a6a6a;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.heroStatDivider {
+  width: 1px;
+  align-self: center;
+  height: 48px;
+  background: rgba(0,0,0,.08);
+}
+
+/* ---------- Hero Actions ---------- */
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 44px;
+}
+.btnPrimary {
+  padding: 16px 44px;
+  border-radius: 14px;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #002D72;
+  color: #ffffff;
+  border: 1px solid #002D72;
+  transition: all 0.2s ease;
+}
+.btnPrimary:hover {
+  background: #00399a;
+  border-color: #00399a;
+  transform: translateY(-1px);
+}
+.btnSecondary {
+  padding: 16px 44px;
+  border-radius: 14px;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #002D72;
+  border: 1px solid rgba(0,45,114,.35);
+  transition: all 0.2s ease;
+}
+.btnSecondary:hover {
+  background: rgba(0,45,114,.06);
+  border-color: rgba(0,45,114,.55);
+  transform: translateY(-1px);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .heroStats { flex-wrap: wrap; gap: 8px 0; }
+  .heroStatItem { padding: 0 26px; }
+  .heroStatValue { font-size: 26px; }
+  .heroActions { flex-direction: column; width: 100%; max-width: 320px; }
+  .btnPrimary, .btnSecondary { width: 100%; }
+}

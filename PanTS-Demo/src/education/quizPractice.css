@@ -1,0 +1,21 @@
+.VisualizationPage.is-quiz-practice { padding-right: 0; }
+
+.edu-quiz-nav {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.edu-quiz-nav .lr-button {
+	width: 100%;
+}
+
+.lr-quiz-choices button.is-correct {
+	border-color: rgba(52, 211, 153, .65);
+	background: rgba(52, 211, 153, .09);
+}
+
+@media (max-width: 520px) {
+	.edu-quiz-header .lr-header__warning { display: none; }
+}

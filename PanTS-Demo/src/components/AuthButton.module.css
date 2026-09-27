@@ -1,0 +1,127 @@
+/* Account control for both nav bars. Monochrome to match the BodyMaps header;
+   the JHU Heritage Blue (#002D72) is reused for the primary "Sign in" action to
+   match the landing page's active tab / primary button. */
+
+.signInBtn {
+	padding: 8px 20px;
+	border-radius: 22px;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	cursor: pointer;
+	background: #002d72;
+	color: #ffffff;
+	border: 1px solid #002d72;
+	transition: background 0.2s ease, transform 0.2s ease;
+	white-space: nowrap;
+}
+.signInBtn:hover {
+	background: #00399a;
+	border-color: #00399a;
+	transform: translateY(-1px);
+}
+
+/* ── Signed-in trigger ── */
+.accountRoot {
+	position: relative;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.accountTrigger {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px 6px 6px;
+	border-radius: 22px;
+	background: transparent;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+	max-width: 220px;
+}
+.accountTrigger:hover {
+	border-color: rgba(0, 0, 0, 0.2);
+	background: rgba(0, 0, 0, 0.03);
+}
+
+.avatar {
+	width: 26px;
+	height: 26px;
+	flex-shrink: 0;
+	border-radius: 50%;
+	background: #002d72;
+	color: #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.accountEmail {
+	font-size: 12px;
+	font-weight: 500;
+	color: #111111;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.chevron {
+	color: #6a6a6a;
+	flex-shrink: 0;
+}
+
+/* ── Dropdown ── */
+.menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	min-width: 220px;
+	background: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+	padding: 6px;
+	z-index: 100;
+}
+
+.menuHeader {
+	padding: 10px 12px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+	margin-bottom: 6px;
+}
+.menuName {
+	font-size: 13px;
+	font-weight: 600;
+	color: #111111;
+}
+.menuEmail {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 11px;
+	color: #8f8f8f;
+	margin-top: 2px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.menuItem {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 9px 12px;
+	border: none;
+	background: transparent;
+	border-radius: 8px;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 13px;
+	color: #111111;
+	cursor: pointer;
+	text-align: left;
+	transition: background 0.12s;
+}
+.menuItem:hover {
+	background: rgba(0, 0, 0, 0.05);
+}

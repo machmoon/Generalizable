@@ -1,0 +1,439 @@
+.seg-effect {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+    border-top: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+}
+
+.seg-effect__title {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--vp-text, #ffffff);
+}
+
+.seg-effect__desc {
+    font-size: 11px;
+    color: var(--vp-text-faint, rgba(255, 255, 255, 0.5));
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+
+.seg-effect__field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.seg-effect__label {
+    font-size: 11.5px;
+    color: var(--vp-text-dim, rgba(255, 255, 255, 0.7));
+    min-width: 90px;
+}
+
+.seg-effect__radio,
+.seg-effect__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--vp-text, #ffffff);
+    cursor: pointer;
+}
+
+.seg-effect__grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+}
+
+.seg-effect__number {
+    width: 70px;
+    background: var(--vp-panel-strong, rgba(255, 255, 255, 0.07));
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    border-radius: 6px;
+    color: var(--vp-text, #ffffff);
+    padding: 4px 6px;
+}
+
+.seg-effect__unit {
+    font-size: 11px;
+    color: var(--vp-text-faint, rgba(255, 255, 255, 0.5));
+}
+
+.seg-effect__select {
+    flex: 1;
+    background: var(--vp-panel-strong, rgba(255, 255, 255, 0.07));
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    border-radius: 6px;
+    color: var(--vp-text, #ffffff);
+    padding: 5px 7px;
+}
+
+.seg-effect__apply {
+    background: #fff;
+    color: #08090b;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 700;
+    font-size: 12.5px;
+    cursor: pointer;
+}
+
+.seg-effect__apply:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.seg-effect__apply--inline {
+    padding: 6px 10px;
+}
+
+/* Black-and-white outline variant used by Margin's Grow/Shrink pair — same
+   footprint/weight as .seg-effect__apply but starts as a quiet outline
+   instead of solid white, since two of these sit side by side and a solid
+   pair would compete with each other for attention. */
+.seg-effect__apply--outline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.seg-effect__apply--outline:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.seg-effect__apply--outline:disabled {
+    cursor: default;
+}
+
+.seg-effect__pick {
+    background: var(--vp-panel-strong, rgba(255, 255, 255, 0.07));
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    border-radius: 8px;
+    color: var(--vp-text, #ffffff);
+    padding: 7px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.seg-effect__section-toggle {
+    background: transparent;
+    border: none;
+    color: var(--vp-text-dim, rgba(255, 255, 255, 0.7));
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.seg-effect__masking {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 8px;
+    border-left: 2px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+}
+
+.seg-effect__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.seg-effect__dropdown-wrap {
+    position: relative;
+}
+
+.seg-effect__dropdown-trigger {
+    background: var(--vp-panel-strong, rgba(255, 255, 255, 0.07));
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    border-radius: 6px;
+    color: var(--vp-text, #ffffff);
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.seg-effect__dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 20;
+    background: #16181d;
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 140px;
+}
+
+.seg-effect__dropdown-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--vp-text, #ffffff);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.seg-effect__dropdown-item:hover {
+    background: var(--vp-hover, rgba(255, 255, 255, 0.08));
+}
+
+.seg-effect__dropdown-item.is-active {
+    background: #fff;
+    color: #08090b;
+}
+
+.seg-effect__seg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.seg-effect__seg-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.seg-effect__seg-row:hover {
+    background: var(--vp-hover, rgba(255, 255, 255, 0.08));
+}
+
+.seg-effect__seg-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.seg-effect__seg-name {
+    flex: 1;
+    font-size: 12.5px;
+    color: var(--vp-text, #ffffff);
+}
+
+.seg-effect__apply-spinner-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.seg-effect__apply-spinner {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(8, 9, 11, 0.25);
+    border-top-color: #08090b;
+    animation: seg-effect-spin 0.7s linear infinite;
+}
+
+@keyframes seg-effect-render-pulse {
+
+    0%,
+    100% {
+        transform: scale(0.7);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.seg-effect__hint {
+    font-size: 11px;
+    color: var(--vp-text-faint, rgba(255, 255, 255, 0.5));
+}
+
+.seg-effect__error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 7px;
+    padding: 6px 8px;
+    animation: seg-effect-error-in 0.12s ease-out;
+}
+
+@keyframes seg-effect-error-in {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.seg-effect__number {
+    width: 56px;
+    background: var(--vp-panel-strong, rgba(255, 255, 255, 0.07));
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    border-radius: 6px;
+    color: var(--vp-text, #ffffff);
+    padding: 5px 6px;
+    font-size: 12.5px;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    box-sizing: border-box;
+    line-height: 1.2;
+}
+
+.seg-effect__number::-webkit-inner-spin-button,
+.seg-effect__number::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.seg-effect__number:focus {
+    outline: none;
+    border-color: #0b17ff;
+    background: rgba(104, 172, 229, 0.08);
+}
+
+.seg-effect__number--compact {
+    width: 50px;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   NOTABILITY-STYLE ICON ROWS — replaces labeled option lists /
+   sentences / hint paragraphs across the flyouts with a plain row
+   of icon-only buttons. The name + any extra detail lives in a
+   hover tooltip instead of sitting permanently in the panel, same
+   pattern as the ribbon's own .atb__btn / .atb__tooltip. See
+   IconChoiceRow.tsx.
+   ============================================================ */
+.seg-effect__icon-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.seg-effect__icon-btn-wrap {
+    position: relative;
+    display: flex;
+}
+
+.seg-effect__icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 9px;
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    background: var(--vp-panel-strong, rgba(255, 255, 255, 0.07));
+    color: var(--vp-text-dim, rgba(255, 255, 255, 0.7));
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+    flex-shrink: 0;
+}
+
+.seg-effect__icon-btn--sm {
+    width: 26px;
+    height: 26px;
+}
+
+.seg-effect__icon-btn--md {
+    width: 32px;
+    height: 32px;
+}
+
+.seg-effect__icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.seg-effect__icon-btn--sm svg {
+    width: 15px;
+    height: 15px;
+}
+
+.seg-effect__icon-btn:hover:not(:disabled) {
+    background: var(--vp-hover, rgba(255, 255, 255, 0.08));
+    color: var(--vp-text, #ffffff);
+}
+
+.seg-effect__icon-btn.is-active {
+    background: #fff;
+    border-color: #fff;
+    color: #08090b;
+}
+
+.seg-effect__icon-btn--primary {
+    border-color: rgba(0, 45, 114, 0.4);
+    color: #0b17ff;
+}
+
+.seg-effect__icon-btn--primary:hover:not(:disabled) {
+    background: rgba(0, 45, 114, 0.14);
+}
+
+.seg-effect__icon-btn--danger {
+    border-color: rgba(0, 0, 0, 0.35);
+    color: #ffffff;
+}
+
+.seg-effect__icon-btn--danger:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.seg-effect__icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.seg-effect__tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 140px;
+    max-width: 220px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    background: #16181d;
+    border: 1px solid var(--vp-border, rgba(255, 255, 255, 0.09));
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+    z-index: 80;
+    pointer-events: none;
+    white-space: normal;
+}
+
+.seg-effect__tooltip strong {
+    font-size: 11.5px;
+    color: #fff;
+}
+
+.seg-effect__tooltip span {
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: var(--vp-text-faint, rgba(255, 255, 255, 0.5));
+}

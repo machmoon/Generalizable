@@ -1,0 +1,497 @@
+/* Only what the settings chrome has no equivalent for: the tiles, the bars and
+   the trend line. Everything else — panels, headings, rows, buttons, inputs —
+   comes from Settings.css, which the settings shell already imports.
+
+   The palette is the brand's: --ink on --paper-2, IBM Plex Sans for text,
+   IBM Plex Mono for figures. Bars are one hue throughout; colour here
+   would encode rank, which length and order already encode.
+
+   Every rule is under .dash-*, and the variables are scoped to the dashboard's
+   own root rather than :root, so loading this file can't reach the rest of the
+   site. It was a standalone app's stylesheet before it lived here. */
+
+.dash {
+	--dash-brand: #002d72;
+	--dash-ink: #111111;
+	--dash-muted: #8f8f8f;
+	--dash-hairline: rgba(0, 0, 0, 0.07);
+	--dash-track: rgba(0, 45, 114, 0.08);
+}
+
+/* ── Filters: one row, above everything they affect ── */
+.dash-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px;
+	margin-bottom: 22px;
+}
+.dash-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+.dash-field-label {
+	font-size: 12px;
+	color: var(--dash-muted);
+}
+/* The site's inputs are sized for a settings row; these sit in a toolbar. */
+.dash-input {
+	min-width: 0;
+	width: auto;
+	font-size: 13px;
+	padding: 7px 10px;
+}
+.dash-reset {
+	margin-bottom: 1px;
+}
+/* The site's segmented control is centred for the plan picker; in a filter row
+   it belongs where it sits. */
+.dash-segmented {
+	margin: 0;
+}
+
+.dash-banner {
+	margin-bottom: 20px;
+}
+.dash-retry {
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.dash-empty {
+	font-size: 13px;
+	color: var(--dash-muted);
+	margin: 6px 0 0;
+}
+
+/* ── Stat tiles: the headline numbers, no plot ── */
+.dash-tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+.dash-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	background: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 14px;
+	padding: 16px 18px;
+}
+.dash-tile-label {
+	font-size: 12.5px;
+	color: var(--dash-muted);
+}
+.dash-tile-value {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 24px;
+	font-weight: 600;
+	color: var(--dash-ink);
+	letter-spacing: -0.5px;
+}
+.dash-tile-note {
+	font-size: 12px;
+	color: var(--dash-muted);
+}
+
+.dash-panel {
+	margin-bottom: 20px;
+}
+.dash-split {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 20px;
+}
+
+/* ── People: an account per row, its roles on the right ── */
+.dash-person {
+	gap: 16px;
+}
+/* Long addresses wrap rather than shoving the toggles off the row. */
+.dash-person .set-row-label {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.dash-you {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--dash-muted);
+}
+/* One account and everything belonging to it: the row, its open menu, and its
+   confirmation, so the three stay together when rows are added or removed. */
+.dash-person-block + .dash-person-block {
+	border-top: 1px solid var(--dash-hairline);
+}
+
+/* Why an account can't be signed into, said on the row rather than hidden in
+   the menu — it changes what the Edit button is for. */
+.dash-scheduled {
+	display: block;
+	margin-top: 3px;
+	font-size: 12px;
+	color: #b45309;
+}
+
+/* The Edit menu. A list under the row rather than a floating popover: it needs
+   no positioning logic, it can't be clipped by the panel's overflow, and tab
+   order follows what you see. */
+.dash-menu {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	margin: 0 0 12px;
+	padding: 6px;
+	border: 1px solid var(--dash-hairline);
+	border-radius: 10px;
+	background: rgba(0, 0, 0, 0.02);
+}
+.dash-menu-item {
+	width: 100%;
+	padding: 7px 10px;
+	border: none;
+	border-radius: 7px;
+	background: none;
+	font: inherit;
+	font-size: 13px;
+	color: var(--dash-ink);
+	text-align: left;
+	text-transform: capitalize;
+	cursor: pointer;
+}
+.dash-menu-item:hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+.dash-menu-item--danger {
+	color: #b42318;
+}
+.dash-menu-rule {
+	width: 100%;
+	height: 1px;
+	margin: 4px 0;
+	background: var(--dash-hairline);
+}
+
+/* Settings.css centres its confirmation under a full-width row; here it belongs
+   under the one account it is about. */
+.dash-confirm {
+	margin-bottom: 12px;
+}
+
+/* ── Bars ── */
+.dash-bars {
+	list-style: none;
+	margin: 14px 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+.dash-bar-row {
+	display: grid;
+	grid-template-columns: minmax(140px, 260px) minmax(60px, 1fr) auto;
+	align-items: center;
+	gap: 14px;
+	padding: 9px 0;
+	border-bottom: 1px solid var(--dash-hairline);
+}
+.dash-bar-row:last-child {
+	border-bottom: none;
+}
+.dash-bar-row:hover {
+	background: rgba(0, 45, 114, 0.03);
+}
+.dash-bar-label {
+	font-size: 13.5px;
+	color: var(--dash-ink);
+	min-width: 0;
+}
+.dash-bar-note {
+	display: block;
+	font-size: 11.5px;
+	color: var(--dash-muted);
+	margin-top: 2px;
+}
+.dash-bar-track {
+	background: var(--dash-track);
+	border-radius: 4px;
+	height: 10px;
+	overflow: hidden;
+}
+/* Anchored to the start, rounded at the data end. */
+.dash-bar-fill {
+	display: block;
+	height: 100%;
+	background: var(--dash-brand);
+	border-radius: 0 4px 4px 0;
+	transition: width 0.2s ease;
+}
+.dash-bar-value {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 13px;
+	color: var(--dash-ink);
+	text-align: right;
+	white-space: nowrap;
+}
+
+/* ── Trend ── */
+.dash-trend {
+	margin-top: 14px;
+}
+.dash-trend-svg {
+	width: 100%;
+	height: auto;
+	display: block;
+	overflow: visible;
+}
+.dash-trend-area {
+	fill: rgba(0, 45, 114, 0.07);
+}
+.dash-trend-line {
+	fill: none;
+	stroke: var(--dash-brand);
+	stroke-width: 2;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+}
+.dash-trend-dot {
+	fill: var(--dash-brand);
+	stroke: #ffffff;
+	stroke-width: 2;
+	transition: r 0.1s ease;
+}
+.dash-trend-crosshair {
+	stroke: rgba(0, 45, 114, 0.35);
+	stroke-width: 1;
+	stroke-dasharray: 3 3;
+}
+.dash-trend-axis {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 11px;
+	fill: var(--dash-muted);
+}
+.dash-trend-readout {
+	margin-top: 8px;
+	font-size: 13px;
+	color: var(--dash-ink);
+	min-height: 18px;
+}
+.dash-trend-hint {
+	color: var(--dash-muted);
+}
+
+/* ── Change against the previous period ──
+   Colour carries meaning here (up/down), unlike the bars, so it also carries a
+   glyph: red-vs-green alone is unreadable to a good fraction of people. */
+.dash-delta {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 11.5px;
+	font-weight: 600;
+	letter-spacing: -0.2px;
+}
+.dash-delta--up {
+	color: #15803d;
+}
+.dash-delta--down {
+	color: #b42318;
+}
+
+/* A country picked on the map narrows every panel below, so it's stated once,
+   above all of them. */
+.dash-scope {
+	margin-bottom: 16px;
+	padding: 10px 14px;
+	border: 1px solid var(--dash-hairline);
+	border-radius: 10px;
+	background: rgba(0, 45, 114, 0.04);
+	font-size: 13px;
+	color: var(--dash-ink);
+}
+
+/* ── The map ── */
+
+/* Map and its country list side by side. They fall into one column before the
+   map gets too small to pick a country out of. */
+.dash-map-row {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+	gap: 20px;
+	align-items: start;
+}
+@media (max-width: 900px) {
+	.dash-map-row {
+		grid-template-columns: 1fr;
+	}
+}
+.dash-map-side {
+	min-width: 0;
+}
+.dash-subheading {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--dash-ink);
+}
+
+.dash-map {
+	position: relative;
+	min-width: 0;
+}
+.dash-map-svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+.dash-map-country {
+	stroke: #ffffff;
+	stroke-width: 0.4;
+	/* Countries with no sessions are the outline that makes the filled ones
+	   legible, not data — they take no pointer events at all. */
+	pointer-events: none;
+}
+.dash-map-country--live {
+	pointer-events: auto;
+	cursor: pointer;
+	transition: stroke 0.12s, stroke-width 0.12s;
+}
+.dash-map-country--live:hover {
+	stroke: var(--dash-brand);
+	stroke-width: 1;
+}
+.dash-map-country--on {
+	stroke: var(--dash-brand);
+	stroke-width: 1.4;
+}
+
+/* Follows the cursor, so it must never sit under it and swallow the hover. */
+.dash-map-tip {
+	position: absolute;
+	z-index: 2;
+	transform: translate(12px, -50%);
+	padding: 7px 10px;
+	border-radius: 8px;
+	background: var(--dash-ink);
+	color: #ffffff;
+	font-size: 12px;
+	line-height: 1.45;
+	white-space: nowrap;
+	pointer-events: none;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.dash-map-key {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-top: 8px;
+}
+.dash-map-key-step {
+	width: 26px;
+	height: 8px;
+	border-radius: 2px;
+}
+.dash-map-key-label {
+	font-size: 11px;
+	color: var(--dash-muted);
+}
+
+/* ── Ring charts ── */
+.dash-donut {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+.dash-donut-svg {
+	width: 132px;
+	height: 132px;
+	flex-shrink: 0;
+}
+.dash-donut-key {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	flex: 1;
+}
+.dash-donut-key-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 0;
+	font-size: 13px;
+}
+.dash-donut-swatch {
+	width: 10px;
+	height: 10px;
+	border-radius: 3px;
+	flex-shrink: 0;
+}
+.dash-donut-label {
+	color: var(--dash-ink);
+}
+.dash-donut-value {
+	margin-left: auto;
+	display: flex;
+	gap: 8px;
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 12.5px;
+	color: var(--dash-ink);
+}
+.dash-donut-pct {
+	color: var(--dash-muted);
+}
+
+/* ── When people visit ── */
+.dash-timebars-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 14px;
+}
+.dash-timebars-note {
+	font-size: 11.5px;
+	color: var(--dash-muted);
+}
+.dash-timebars {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+	height: 150px;
+}
+/* 24 hours in the same width as 7 days. */
+.dash-timebars--dense {
+	gap: 3px;
+}
+.dash-timebar {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: stretch;
+	gap: 6px;
+}
+.dash-timebar-fill {
+	background: var(--dash-brand);
+	border-radius: 4px 4px 0 0;
+	min-height: 0;
+	transition: height 0.2s;
+}
+.dash-timebar-label {
+	font-size: 11px;
+	color: var(--dash-muted);
+	text-align: center;
+	/* Keeps the 24-hour row from wrapping "12" onto two lines. */
+	white-space: nowrap;
+}

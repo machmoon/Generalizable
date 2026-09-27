@@ -1,0 +1,17 @@
+[Unit]
+Description=ePAI Pull Worker (bdmap1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=visitor
+Group=visitor
+WorkingDirectory=/home/visitor/PanTS-Viewer/flask-server
+EnvironmentFile=/home/visitor/PanTS-Viewer/flask-server/deploy/systemd/epai-pull-worker.env
+ExecStart=/home/visitor/miniconda3/bin/python /home/visitor/PanTS-Viewer/flask-server/scripts/epai_pull_worker.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

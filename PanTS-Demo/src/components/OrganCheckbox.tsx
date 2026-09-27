@@ -1,0 +1,345 @@
+import type { Color } from "@cornerstonejs/core/types";
+import { IconArrowLeft, IconCheck, IconChevronRight, IconCurrentLocation } from "@tabler/icons-react";
+import React, { useEffect, useState } from "react";
+import {
+	MiscColorMap, OrganSystems,
+	OrganSystemsArray,
+	segmentation_categories
+} from "../helpers/constants";
+import { deepIsEqual } from "../helpers/utils";
+import {
+	type AllSystems,
+	type OrganSystemsAllType,
+	type SubSystems,
+	type Systems,
+	type CheckBoxData
+} from "../types";
+
+type ChipBoxProps = {
+	labelColorMap: { [key: number]: number[] };
+	system: AllSystems;
+	setCheckState: React.Dispatch<React.SetStateAction<boolean[]>>;
+	checkState: boolean[];
+	level: number;
+	OrganSystem: OrganSystemsAllType;
+	onJumpToOrgan?: (label: number) => void;
+};
+
+type Props = {
+	labelColorMap: { [key: number]: Color };
+	setCheckState: React.Dispatch<React.SetStateAction<boolean[]>>;
+	checkState: boolean[];
+	sessionId: string | undefined;
+	setShowOrganDetails: React.Dispatch<React.SetStateAction<boolean>>;
+	showOrganDetails: boolean;
+	onJumpToOrgan?: (label: number) => void;
+	customOrgans?: CheckBoxData[];
+};
+
+const getOrganIdx = (organ: string) => {
+	for (let i = 0; i < segmentation_categories.length; i++) {
+		if (segmentation_categories[i] === organ) {
+			return i;
+		}
+	}
+	return 0;
+};
+
+function Checked({
+	OrganSystem,
+	system,
+	labelColorMap,
+	checkState,
+	setCheckState,
+	level = 0,
+	onJumpToOrgan,
+}: ChipBoxProps) {
+	const [collapsed, setCollapsed] = useState(false);
+	const [partialToggled, setPartialToggled] = useState(true);
+	const updateToggle = (toggled: boolean) => {
+		if (!OrganSystem[system]) return;
+		const newCheckState = [...checkState];
+		OrganSystem[system].forEach((sub) => {
+			if (typeof sub === "string") {
+				newCheckState[getOrganIdx(sub) + 1] = toggled;
+				return;
+			}
+			const key: SubSystems = Object.keys(sub)[0] as SubSystems;
+			const suborgans = sub[key];
+			if (!suborgans) return newCheckState;
+			suborgans.forEach(
+				(suborgan) => (newCheckState[getOrganIdx(suborgan) + 1] = toggled)
+			);
+			// return newCheckState;
+		});
+		if (!deepIsEqual(newCheckState, checkState)) {
+			setCheckState(newCheckState);
+		}
+	};
+
+	useEffect(() => {
+		if (!OrganSystem[system]) return;
+		let flag = false;
+		OrganSystem[system].forEach((sub) => {
+			if (typeof sub === "string") {
+				if (checkState[getOrganIdx(sub) + 1] === true) {
+					flag = true;
+					if (partialToggled !== true) setPartialToggled(true);
+					return;
+				}
+			}
+		});
+		if (flag === false) setPartialToggled(false);
+	}, [checkState, OrganSystem, system, partialToggled, setPartialToggled]);
+  let color = null;
+  if (system in MiscColorMap) {
+    color = MiscColorMap[system as SubSystems];
+    color = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+  }
+
+	if (!OrganSystem[system] || level > 1) return null;
+	return (
+		<div className={`flex gap-2 flex-col ${level === 0 ? "" : "pl-8"}`}>
+			<div className="flex justify-between items-center">
+				{!color ? (
+					<>
+						<div
+							className={`flex items-center gap-2 cursor-pointer`}
+							onClick={() => setCollapsed((prev) => !prev)}
+						>
+							<IconChevronRight
+								className={`vp-organs__chevron ${
+									collapsed ? "is-open" : ""
+								}`}
+							/>
+							<div
+								className={`text-white text-lg`}
+							>
+								{system}
+							</div>
+						</div>
+						<button
+							type="button"
+							role="checkbox"
+							aria-checked={partialToggled}
+							aria-label={`Toggle ${system}`}
+							className={`vp-checkbox ${partialToggled ? "vp-checkbox--on" : ""}`}
+							onClick={() => updateToggle(!partialToggled)}
+						>
+							{partialToggled && <IconCheck size={13} stroke={3} />}
+						</button>
+					</>
+				) : (
+					<>
+						<div
+							className={`flex items-center gap-1 mb-1 cursor-pointer`}
+							onClick={() => setCollapsed((prev) => !prev)}
+						>
+							<IconChevronRight
+								className={`vp-organs__chevron ${
+									collapsed ? "is-open" : ""
+								}`}
+							/>
+							<div
+								className={`text-white text-md rounded-md p-1 cursor-pointer hover:border-2 ${
+										!partialToggled
+											? "border-0"
+											: "border-2"
+                }`}
+                style={{borderColor: color}}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateToggle(!partialToggled);
+                }}
+							>
+								{system}
+							</div>
+						</div>
+					</>
+				)}
+			</div>
+			<div
+				className={`flex flex-col gap-2 transition-all duration-100 origin-top ${
+					!collapsed ? "hidden scale-y-0" : "scale-y-100"
+				}`}
+			>
+				{OrganSystem[system].map((organ, idx) => {
+					if (typeof organ === "string") {
+						const color = labelColorMap[getOrganIdx(organ) + 1];
+						const rgb = color
+							? `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+							: "gray";
+						// A subgroup's header (Pancreas, Colon) already toggles the organ
+						// of the same name, so it isn't repeated as a child row.
+						if (level === 1 && organ === system.toLowerCase()) return null;
+						return (
+							<div className={`flex items-center gap-2 ${level == 0 ? "pl-8" : "pl-5"} `} key={idx}>
+								<span aria-hidden="true" style={{ width: 18, height: 18, flexShrink: 0 }} />
+								<div
+									className={`text-white text-md rounded-md p-1 cursor-pointer hover:border-2 ${
+										!checkState[getOrganIdx(organ) + 1]
+											? "border-0"
+											: "border-2"
+									}`}
+									style={{ borderColor: rgb }}
+									onClick={() => {
+										setCheckState((prev) => {
+											const newCheckState = [...prev];
+											newCheckState[getOrganIdx(organ) + 1] =
+												!newCheckState[getOrganIdx(organ) + 1];
+											return newCheckState;
+										});
+									}}
+								>
+									{organ.replaceAll('_', ' ')}
+								</div>
+								{onJumpToOrgan && (
+									<button
+										type="button"
+										className="vp-organs__jump"
+										title={`Jump to ${organ.replaceAll('_', ' ')}`}
+										aria-label={`Jump to ${organ.replaceAll('_', ' ')}`}
+										onClick={(e) => {
+											e.stopPropagation();
+											onJumpToOrgan(getOrganIdx(organ) + 1);
+										}}
+									>
+										<IconCurrentLocation size={15} />
+									</button>
+								)}
+							</div>
+						);
+					} else if (
+						typeof organ === "object" &&
+						Object.keys(organ).length === 1
+					) {
+						const organKey: AllSystems = Object.keys(organ)[0] as AllSystems;
+						return (
+							<Checked
+								key={organKey}
+								OrganSystem={organ}
+								system={organKey}
+								labelColorMap={labelColorMap}
+								checkState={checkState}
+								setCheckState={setCheckState}
+								level={level + 1}
+								onJumpToOrgan={onJumpToOrgan}
+							/>
+						);
+					}
+				})}
+			</div>
+		</div>
+	);
+}
+
+function OrganCheckbox({
+	setCheckState,
+	checkState,
+	labelColorMap,
+	setShowOrganDetails,
+	showOrganDetails,
+	onJumpToOrgan,
+	customOrgans = [],
+}: Props) {
+	const toggleAll = () => {
+		setCheckState((prev) => {
+			let newState = [...prev];
+			const trueCount = newState.filter((val) => val === true).length;
+			if (trueCount > newState.length / 2) {
+				newState = newState.map(() => false);
+			} else {
+				newState = newState.map(() => true);
+			}
+			return newState;
+		});
+	};
+
+	// Docked in the viewer's body row (left of the stage), not a fixed overlay.
+	// Kept mounted with display toggled so the expand/collapse state survives.
+	return (
+		<div
+			className={`vp-organs flex-col gap-4 w-72 px-4 pb-4 pt-4 ${
+				showOrganDetails ? "vp-organs--open" : ""
+			}`}
+		>
+			<div className="flex justify-between items-center w-full">
+
+			<div className="flex gap-2 items-center justify-start">
+				<IconArrowLeft
+					className="vp-organs__back"
+					onClick={() => setShowOrganDetails(false)}
+					/>
+			<div className="vp-organs__title">Organs</div>
+			</div>
+			<button className="vp-btn" onClick={() => toggleAll()}>
+				Toggle all
+			</button></div>
+			<div className="vp-organs__list flex flex-col gap-1 overflow-y-auto">
+				{OrganSystemsArray.map((system: Systems, idx) => {
+					return (
+						<Checked
+							level={0}
+							OrganSystem={OrganSystems}
+							key={idx}
+							system={system}
+							labelColorMap={labelColorMap}
+							checkState={checkState}
+							setCheckState={setCheckState}
+							onJumpToOrgan={onJumpToOrgan}
+						/>
+					);
+				})}
+			</div>
+			{customOrgans.length > 0 && (
+				<div className="flex gap-2 flex-col">
+					<div className="text-white text-lg">Custom Classes</div>
+					<div className="flex flex-col gap-2">
+						{customOrgans.map((organ) => {
+							const color = labelColorMap[organ.id];
+							const rgb = color
+								? `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+								: "gray";
+							return (
+								<div className="flex items-center gap-2 pl-8" key={organ.id}>
+									<span aria-hidden="true" style={{ width: 18, height: 18, flexShrink: 0 }} />
+									<div
+										className={`text-white text-md rounded-md p-1 cursor-pointer hover:border-2 ${
+											!checkState[organ.id] ? "border-0" : "border-2"
+										}`}
+										style={{ borderColor: rgb }}
+										onClick={() => {
+											setCheckState((prev) => {
+												const newCheckState = [...prev];
+												newCheckState[organ.id] = !newCheckState[organ.id];
+												return newCheckState;
+											});
+										}}
+									>
+										{organ.label}
+									</div>
+									{onJumpToOrgan && (
+										<button
+											type="button"
+											className="vp-organs__jump"
+											title={`Jump to ${organ.label}`}
+											aria-label={`Jump to ${organ.label}`}
+											onClick={(e) => {
+												e.stopPropagation();
+												onJumpToOrgan(organ.id);
+											}}
+										>
+											<IconCurrentLocation size={15} />
+										</button>
+									)}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+			<div className="w-full"></div>
+		</div>
+	);
+}
+export default OrganCheckbox;

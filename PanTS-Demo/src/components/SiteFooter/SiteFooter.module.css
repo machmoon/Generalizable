@@ -1,0 +1,50 @@
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 24px;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 32px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  flex: none;
+  /* Ride the bottom edge of the viewport until the page's natural end, so the
+     notice is visible without scrolling on long pages (dashboard, upload). */
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+.notice {
+  letter-spacing: 0.01em;
+}
+
+.partner {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.link {
+  color: #002d72;
+  font-weight: 500;
+  text-decoration: underline; /* non-color affordance at rest (WCAG 1.4.1) */
+  text-underline-offset: 2px;
+}
+.link:hover {
+  color: #001d4a;
+}
+
+@media (max-width: 640px) {
+  .footer {
+    justify-content: center;
+    text-align: center;
+    padding: 8px 20px;
+  }
+}

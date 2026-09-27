@@ -1,0 +1,58 @@
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.pagerBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: #111111;
+  cursor: pointer;
+  outline: none;
+}
+.pagerBtnDisabled {
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.25);
+  cursor: default;
+}
+
+.pagerInfo {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  min-width: 120px;
+  text-align: center;
+}
+
+.pagerGoForm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.pagerInput {
+  width: 132px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: #111111;
+  background: #ffffff;
+  outline: none;
+}
+
+@media (max-width: 767px) {
+  .pagerGoForm { display: none; }
+  .pagerInfo { min-width: unset; }
+}

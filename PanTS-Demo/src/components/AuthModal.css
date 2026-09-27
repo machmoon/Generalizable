@@ -1,0 +1,276 @@
+/* Global auth popup. Light surface, ink primary per BRANDING.md. */
+
+
+.authm-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 300;
+	background: rgba(17, 17, 17, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 5vh 5vw;
+	animation: authm-fade 0.15s ease;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+@keyframes authm-fade {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+.authm-card {
+	position: relative;
+	width: 100%;
+	max-width: 380px;
+	background: #ffffff;
+	border-radius: 16px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+	padding: 32px 28px 24px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.authm-close {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	border: none;
+	border-radius: 8px;
+	color: #8f8f8f;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+}
+.authm-close:hover {
+	background: rgba(0, 0, 0, 0.05);
+	color: #111111;
+}
+
+.authm-logo {
+	width: 40px;
+	height: 40px;
+	margin-bottom: 12px;
+}
+
+.authm-title {
+	font-size: 22px;
+	font-weight: 600;
+	color: #111111;
+	margin: 0 0 22px;
+}
+
+/* Provider buttons */
+.authm-provider {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 12px 16px;
+	margin-bottom: 10px;
+	border-radius: 10px;
+	background: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.14);
+	color: #111111;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+.authm-provider:hover:not(:disabled) {
+	background: rgba(0, 0, 0, 0.03);
+	border-color: rgba(0, 0, 0, 0.28);
+}
+.authm-provider:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.authm-divider {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	margin: 14px 0;
+	color: #b0b0b0;
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 11px;
+}
+.authm-divider::before,
+.authm-divider::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: rgba(0, 0, 0, 0.08);
+}
+.authm-divider span {
+	padding: 0 12px;
+}
+
+.authm-email-btn {
+	width: 100%;
+	padding: 12px 16px;
+	border-radius: 10px;
+	background: #002d72;
+	color: #ffffff;
+	border: 1px solid #002d72;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+.authm-email-btn:hover {
+	background: #00399a;
+}
+
+/* Email form */
+.authm-form {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.authm-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.authm-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6a6a6a;
+}
+.authm-input {
+	padding: 11px 13px;
+	border-radius: 10px;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+	background: #fafafa;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 14px;
+	color: #111111;
+	transition: border-color 0.15s, background 0.15s;
+}
+.authm-input:focus {
+	outline: none;
+	border-color: #002d72;
+	background: #ffffff;
+}
+.authm-error {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 12px;
+	color: #ef4444;
+}
+.authm-submit {
+	padding: 12px 16px;
+	border-radius: 10px;
+	background: #002d72;
+	color: #ffffff;
+	border: 1px solid #002d72;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+.authm-submit:hover:not(:disabled) {
+	background: #00399a;
+}
+.authm-submit:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+.authm-back {
+	background: none;
+	border: none;
+	padding: 2px;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 12px;
+	color: #6a6a6a;
+	cursor: pointer;
+	align-self: center;
+}
+.authm-back:hover {
+	color: #111111;
+}
+
+/* Signup only — consent by continuing, in place of a checkbox. */
+.authm-fineprint {
+	width: 100%;
+	margin: 16px 0 0;
+	font-size: 11.5px;
+	line-height: 1.55;
+	color: #8f8f8f;
+	text-align: center;
+}
+.authm-fineprint a {
+	color: #6a6a6a;
+	text-decoration: underline;
+}
+.authm-fineprint a:hover {
+	color: #002d72;
+}
+
+.authm-toggle {
+	width: 100%;
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid rgba(0, 0, 0, 0.07);
+	text-align: center;
+	font-size: 13px;
+	color: #6a6a6a;
+}
+.authm-link {
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	font-weight: 600;
+	color: #002d72;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+/* ── Password reset ── */
+
+/* Explains what the single email field is for. The other two modes need no
+   explanation; this one is asking for something the user didn't come here to
+   give. */
+.authm-sub {
+	width: 100%;
+	margin: -6px 0 4px;
+	font-size: 12.5px;
+	line-height: 1.55;
+	color: #6a6a6a;
+}
+
+/* Right-aligned under the password field, where every sign-in form puts it. */
+.authm-forgot {
+	align-self: flex-end;
+	margin-top: -4px;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+/* The settled end state after a reset request — sized like body copy rather
+   than like an error, because nothing has gone wrong. */
+.authm-sent {
+	width: 100%;
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.6;
+	color: #111111;
+}
+.authm-sent strong {
+	font-weight: 600;
+	word-break: break-all;
+}

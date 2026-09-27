@@ -1,0 +1,1881 @@
+.VisualizationPage {
+  display: grid;
+  grid-template-columns: 20vw 80vw;
+  grid-template-rows: 100vh;
+  background-color: #08090b;
+  color: white;
+  /* Width reserved for the BodyMaps AI sidebar. Shared by the sidebar itself
+     (src/components/AIAssistant/AISidebar.css) and by the content shift below,
+     so the CT views sit flush against the panel with no overlap. */
+  --vp-ai-width: 400px;
+  /* Declared here (not just inside .annotation-open) so the property has a
+     transition defined in BOTH states — opening AND closing the segments
+     panel animates the viewport's width smoothly instead of the
+     padding-right jumping straight from 0 to ~320px (or back) the instant
+     the annotation-open class toggles. Matches .vp-stage's own
+     margin-top transition below so the ribbon opening and the panel
+     opening read as one coordinated resize instead of two different
+     speeds.
+   */
+  padding-right: 0px;
+  transition: padding-right 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* When the AI sidebar is open the page container shrinks (see the inline width
+   in VisualizationPage.tsx); the fixed, viewport-width bottom bar must shrink
+   with it so it doesn't slide under the panel. */
+.VisualizationPage.ai-panel-open .checkbox-bottom-bar {
+  width: calc(100vw - var(--vp-ai-width, 400px));
+}
+
+/* Annotation ribbon is docked to the top of the page (see AnnotationToolbar.css)
+   instead of floating over the canvas. When open, push the whole grid down by
+   the ribbon's height via padding on the outer container. --atb-ribbon-h is
+   defined in AnnotationToolbar.css and tracks the ribbon's actual height. */
+.VisualizationPage.annotation-open {
+  /* The root is a flex column (.vp-topbar and .vp-stage as siblings); the
+     fixed-position ribbon anchors via `top: var(--vp-topbar-h)` in
+     AnnotationToolbar.css, so only .vp-stage (not the topbar) needs pushing
+     down to make room for it. */
+  padding-right: var(--atb-segpanel-w, 320px);
+}
+
+.VisualizationPage.annotation-open .vp-stage {
+  /* Shrinks automatically (flex: 1 1 auto, overflow:hidden) by the
+     ribbon+panel height plus 10px breathing room below. */
+  margin-top: calc(var(--atb-ribbon-h, 49px) + var(--atb-panel-h, 0px) + 10px);
+  /* Kept in sync with .atb-shell's / .segpop's own open/close transitions
+     so the ribbon, popup, and viewport resize move together. */
+  transition: margin-top 0.2s ease;
+}
+
+@media (max-width: 899px) {
+
+  /* On narrow screens the sidebar covers the full width, so no content shift. */
+  .VisualizationPage.ai-panel-open {
+    width: 100vw !important;
+  }
+
+  .VisualizationPage.ai-panel-open .checkbox-bottom-bar {
+    width: 100vw;
+  }
+}
+
+.sidebar {
+  background-color: transparent;
+  color: white;
+  grid-column: 1;
+  grid-row: 1;
+  text-align: center;
+  max-width: 20vw;
+}
+
+.dropdown {
+  color: black;
+  background-color: #16181d;
+  margin: 2vh;
+  border-radius: 15px;
+  position: relative;
+}
+
+.dropdown-header {
+  text-align: left;
+  color: #dcd9e7;
+  font-size: 20px;
+  padding: 10px;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.dropdown-header:hover {
+  background-color: grey;
+}
+
+
+.vp-body {
+  flex: 1 1 auto;
+  display: flex;
+  position: relative;
+  align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.vp-stage {
+  flex: 1 1 auto;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.visualization-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  background: #000;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas {
+  height: 100%;
+}
+
+/* No transitions on the viewports/canvases — switching views should snap instantly,
+   never animate the image "back into place". */
+.visualization-container .vp-pane,
+.visualization-container canvas {
+  transition: none !important;
+}
+
+/* Grid items default to min-height/min-width: auto, so an oversized canvas (e.g. the
+   NiiVue 3D canvas still sized to fullscreen right after leaving 3D view) would force
+   its grid row to expand and squeeze the others. Let cells shrink and clip instead, so
+   the 2×2 layout stays correct the instant we return to MPR. */
+.visualization-container>div {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.vp-pane-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.vp-pane-wrap>div:first-child {
+  width: 100%;
+  height: 100%;
+}
+
+.report-container button {
+  margin: 5px;
+  background-color: #222;
+  /* 深灰色背景 */
+  color: white;
+  /* 白色文字 */
+  border: 1px solid white;
+  /* 白色边框 */
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.report-container button:hover {
+  background-color: #333;
+  /* hover 时稍微亮一点的灰色 */
+}
+
+
+.checkbox-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20vh;
+  background-color: #0d0e11;
+  border-top: 1px solid #444;
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* ✅ 防止横向滚动 */
+  width: 100vw;
+  /* ✅ 明确控制在视口范围 */
+  box-sizing: border-box;
+  /* ✅ 避免 padding 导致溢出 */
+}
+
+.back-button {
+  background-color: #1a1a1a;
+  color: white;
+  border: 1px solid #444;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background-color: #333;
+}
+
+/* --vp-* tokens are defined in src/index.css (:root) */
+
+/* ---- Floating control surface (the toggleable sidebar) ---- */
+.vp-sidebar {
+  font-family: var(--vp-font);
+  background: rgba(14, 15, 18, 0.82);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-right: 1px solid var(--vp-border);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+}
+
+.vp-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vp-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+}
+
+/* ---- Case header ---- */
+.vp-case-eyebrow {
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint);
+}
+
+.vp-case-id {
+  font-family: var(--vp-font);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--vp-text);
+  line-height: 1;
+}
+
+/* ---- Panel ---- */
+.vp-panel {
+  background: var(--vp-panel);
+  border: 1px solid var(--vp-border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vp-panel__title {
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint);
+  text-align: left;
+}
+
+/* ---- Segmented control (View / CT Window) ---- */
+.vp-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vp-seg__btn {
+  /* Equal width within a row regardless of label length ("MPR" vs "Axial
+     Large") — flex-basis 0 ignores each button's own content size and
+     divides the row evenly, instead of every button sizing to its own text. */
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-family: var(--vp-font);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: var(--vp-panel-strong);
+  color: var(--vp-text-dim);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.vp-seg__btn:hover {
+  background: var(--vp-hover);
+  color: var(--vp-text);
+}
+
+.vp-seg__btn--active {
+  background: #ffffff;
+  color: #08090b;
+  border-color: #ffffff;
+}
+
+.vp-seg--pane-layout .vp-seg__btn {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 6px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+}
+
+/* ---- Labels + numeric readouts inside panels ---- */
+.vp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vp-label {
+  font-family: var(--vp-font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-text);
+}
+
+.vp-readout {
+  font-family: var(--vp-mono);
+  font-size: 12px;
+  color: var(--vp-text-dim);
+  background: var(--vp-panel-strong);
+  border: 1px solid var(--vp-border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  min-width: 46px;
+  text-align: center;
+}
+
+/* ---- Number input ---- */
+.vp-input {
+  width: 64px;
+  font-family: var(--vp-mono);
+  font-size: 12px;
+  color: var(--vp-text);
+  background: var(--vp-panel-strong);
+  border: 1px solid var(--vp-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  text-align: right;
+  outline: none;
+}
+
+.vp-input:focus {
+  border-color: var(--vp-accent);
+}
+
+/* ---- Range slider ---- */
+.vp-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+  cursor: pointer;
+}
+
+.vp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  transition: transform 0.12s;
+}
+
+.vp-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.vp-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- Mini button (Class Map / Center Cursor / Reset) ---- */
+.vp-btn {
+  font-family: var(--vp-font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vp-text);
+  background: var(--vp-panel-strong);
+  border: 1px solid var(--vp-border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.vp-btn:hover {
+  background: var(--vp-hover);
+  border-color: var(--vp-border-strong);
+}
+
+/* ---- Top-left chrome buttons (settings / home) ---- */
+.vp-iconbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 10px;
+  background: rgba(14, 15, 18, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--vp-border);
+  color: var(--vp-text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.vp-iconbtn:hover {
+  background: var(--vp-panel-strong);
+  border-color: var(--vp-border-strong);
+}
+
+/* ============================================================
+   Top toolbar (PYCAD-style). A single horizontal strip in normal
+   flow so it pushes the viewports down instead of overlaying them.
+   ============================================================ */
+.vp-topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  padding: 12px 20px;
+  background: rgba(14, 15, 18, 0.92);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid var(--vp-border);
+  font-family: var(--vp-font);
+  position: relative;
+  /* Above .atb-shell's z-index (50) so this bar's downward-pointing tool
+     tooltips render on top of the annotation ribbon when it's open. */
+  z-index: 55;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* While the annotation ribbon is open, the main toolbar steps back —
+   lower background contrast and dimmer inactive icons — so attention
+   reads as "focused on the annotation toolbar now open below" instead of
+   two equally-loud bars competing for it. The Annotate button itself
+   (and anything else already flagged active) stays at full strength so
+   it doesn't look broken or disabled. */
+.VisualizationPage.annotation-open .vp-topbar {
+  background: rgba(12, 13, 16, 0.6);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.VisualizationPage.annotation-open .vp-topbar .vp-tool:not(.vp-tool--active) {
+  opacity: 0.5;
+}
+
+/* Shaded volume-rendering target: Cornerstone owns the canvas inside. */
+.vp-vol3d {
+  width: 100%;
+  height: 100%;
+}
+
+/* 3D pane footer bar: Meshes/Volume mode toggle + volume presets. */
+.vp-3dbar {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100% - 24px);
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: rgba(14, 15, 18, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--vp-border);
+}
+
+.vp-3dbar__btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--vp-text-dim);
+  font-family: var(--vp-font);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.vp-3dbar__btn:hover {
+  color: var(--vp-text);
+}
+
+.vp-3dbar__btn.is-active {
+  background: #ffffff;
+  color: #08090b;
+}
+
+.vp-3dbar__presets {
+  display: flex;
+  gap: 3px;
+  padding-left: 6px;
+  border-left: 1px solid var(--vp-border);
+}
+
+.vp-3dbar__btn--preset {
+  font-size: 10.5px;
+  padding: 4px 8px;
+  font-family: var(--vp-mono);
+  font-weight: 500;
+}
+
+/* HD button while the full-res volume streams in the background. */
+.vp-tool--busy {
+  border-color: rgba(110, 168, 254, 0.55);
+  animation: vp-hd-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes vp-hd-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(110, 168, 254, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(110, 168, 254, 0);
+  }
+}
+
+/* 3D pane placeholder for local DICOM (no segmentation → no meshes). */
+.vp-3d-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--vp-font);
+  font-size: 13px;
+  color: var(--vp-text-dim);
+}
+
+.vp-3d-empty span {
+  font-size: 11.5px;
+  color: var(--vp-text-faint);
+}
+
+/* Case / session identity block at the toolbar's left. */
+.vp-tb-id {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+}
+
+.vp-tb-id__eyebrow {
+  font-family: var(--vp-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint);
+}
+
+.vp-tb-id__val {
+  font-family: var(--vp-font);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--vp-text);
+}
+
+.vp-tb-id__val-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vp-tb-id__rename-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: 0;
+  line-height: 0;
+  color: var(--vp-text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.vp-tb-id__rename-btn:hover {
+  color: var(--vp-text);
+}
+
+.vp-tb-id__rename-input {
+  background: transparent;
+  border: 1px solid var(--vp-border);
+  border-radius: 4px;
+  padding: 1px 4px;
+  max-width: 220px;
+  outline: none;
+}
+
+.vp-tb-divider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 26px;
+  background: var(--vp-border);
+  margin: 0 6px;
+}
+
+/* Segmented controls in the bar sit in one row and size to content. */
+.vp-tb-seg {
+  flex-wrap: nowrap;
+}
+
+.vp-topbar .vp-seg__btn {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  font-size: 11.5px;
+}
+
+/* Opacity / brightness / contrast / zoom sliders — used inside the Adjust ▾ flyout
+   (.vp-flyout--adjust above restyles them to stack full-width there). */
+.vp-tb-slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.vp-tb-slider__label {
+  font-family: var(--vp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint);
+}
+
+.vp-tb-slider .vp-range {
+  width: 74px;
+}
+
+.vp-tb-slider__val {
+  font-family: var(--vp-mono);
+  font-size: 10.5px;
+  color: var(--vp-text-dim);
+  min-width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.vp-tb-mini {
+  font-family: var(--vp-font);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vp-text-dim);
+  background: var(--vp-panel-strong);
+  border: 1px solid var(--vp-border);
+  border-radius: 7px;
+  padding: 5px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.vp-tb-mini:hover {
+  color: var(--vp-text);
+  border-color: var(--vp-border-strong);
+}
+
+/* Flyout trigger variant (Layout ▾ / Window ▾): label + chevron, same pill shell. */
+.vp-tb-mini--flyout {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vp-tb-mini--active {
+  background: #ffffff;
+  color: #08090b;
+  border-color: #ffffff;
+}
+
+.vp-tb-mini--active:hover {
+  color: #08090b;
+}
+
+/* Tool icon buttons in the bar: slightly smaller, left-aligned, tooltips below. */
+.vp-tb-tools {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.vp-topbar .vp-tool {
+  width: 36px;
+  height: 36px;
+}
+
+.vp-topbar .vp-tool__tip {
+  top: calc(100% + 8px);
+  bottom: auto;
+  transform-origin: top center;
+}
+
+.vp-topbar .vp-tool__caret {
+  right: 3px;
+  bottom: 3px;
+}
+
+/* ---- Tool row (crosshair / download / report) ---- */
+.vp-toolrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.vp-tool {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 10px;
+  background: var(--vp-panel);
+  border: 1px solid var(--vp-border);
+  color: var(--vp-text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.25s ease;
+}
+
+.vp-tool:hover {
+  background: var(--vp-hover);
+  border-color: var(--vp-border-strong);
+}
+
+.vp-tool--active {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #08090b;
+}
+
+.vp-tool--disabled,
+.vp-tool:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.vp-tool--disabled:hover,
+.vp-tool:disabled:hover {
+  background: var(--vp-panel);
+  border-color: var(--vp-border);
+}
+
+.vp-tool__tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) scale(0.9);
+  transform-origin: bottom center;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  background: #16181d;
+  border: 1px solid var(--vp-border);
+  color: var(--vp-text);
+  padding: 5px 9px;
+  border-radius: 7px;
+  transition: opacity 0.12s, transform 0.12s;
+}
+
+.vp-tool:hover .vp-tool__tip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* ---- Measurement tools flyout (collapses Distance/HU/ROI/Clear into one button) ---- */
+.vp-toolgroup {
+  position: relative;
+  display: flex;
+}
+
+/* little caret in the corner to signal the button opens a menu */
+.vp-tool__caret {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  opacity: 0.65;
+}
+
+/* Rendered in a portal (position set inline) so the panel's overflow can't clip it. */
+.vp-flyout {
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  min-width: 184px;
+  background: #16181d;
+  border: 1px solid var(--vp-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* Cine: a single toolbar button opens this popup holding the actual Play/Pause button
+   and the FPS slider (side by side, not stacked) — nothing extra sits in the main
+   toolbar itself. Declared after the base .vp-flyout rule so this row layout actually
+   wins the cascade over its column default. */
+.vp-flyout--cine {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 14px;
+}
+
+.vp-flyout--cine .vp-tb-slider {
+  gap: 10px;
+  cursor: default;
+}
+
+.vp-flyout--cine .vp-range {
+  width: 120px;
+}
+
+/* Brighter than the default dim toolbar-slider labels — this popup sits on its own,
+   away from the icon row, so FPS should read clearly rather than blend in. */
+.vp-flyout--cine .vp-tb-slider__label {
+  color: var(--vp-accent);
+  font-size: 10px;
+}
+
+.vp-flyout--cine .vp-tb-slider__val {
+  min-width: 26px;
+  color: var(--vp-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vp-flyout--cine .vp-tool--cine-play {
+  background: var(--vp-panel);
+  border-color: var(--vp-border);
+  color: var(--vp-text);
+}
+
+.vp-flyout--cine .vp-tool--cine-play:hover {
+  background: var(--vp-hover);
+  border-color: var(--vp-border-strong);
+}
+
+.vp-flyout__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--vp-font);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.vp-flyout__item:hover {
+  background: var(--vp-hover);
+}
+
+.vp-flyout__item.is-active {
+  background: #ffffff;
+  color: #08090b;
+}
+
+/* keyboard-shortcut hint at the right edge of a flyout item */
+.vp-flyout__kbd {
+  margin-left: auto;
+  padding-left: 14px;
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  color: var(--vp-text-faint);
+}
+
+.vp-flyout__item.is-active .vp-flyout__kbd {
+  color: inherit;
+}
+
+/* "Config panel" flyouts (Layout ▾, Window ▾) — reuse the sidebar's segmented-control
+   look (.vp-panel__title section labels + .vp-seg/.vp-seg__btn) inside the dropdown;
+   just a wider min-width than the default .vp-flyout so the segmented rows have room. */
+.vp-flyout--config {
+  min-width: 220px;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+/* Adjust ▾ — the fill/border/brightness/contrast/zoom sliders + center/reset, stacked
+   full-width in a column instead of the topbar's compact inline row. */
+.vp-flyout--adjust {
+  min-width: 240px;
+  padding: 12px 14px;
+  gap: 12px;
+}
+
+.vp-flyout--adjust .vp-tb-slider {
+  width: 100%;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vp-flyout--adjust .vp-range {
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+.vp-flyout--adjust__actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Reading-session toolbar button while recording: red + pulsing */
+.vp-tool--rec {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: rgba(244, 63, 94, 0.55);
+  animation: vp-rec-btn-pulse 1.6s ease-in-out infinite;
+}
+
+.vp-tool--rec:hover {
+  background: rgba(244, 63, 94, 0.3);
+  border-color: rgba(244, 63, 94, 0.7);
+}
+
+@keyframes vp-rec-btn-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(244, 63, 94, 0);
+  }
+}
+
+/* ---- Viewports: subtle accent ring + corner orientation label ---- */
+.vp-pane {
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
+  box-shadow: inset 0 0 0 1px var(--pane-accent, transparent);
+  transition: box-shadow 0.15s;
+}
+
+.vp-pane::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.vp-pane::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 0;
+  width: 3px;
+  height: 12px;
+  background: var(--pane-accent, transparent);
+  border-radius: 0 2px 2px 0;
+  z-index: 5;
+}
+
+.vp-pane--axial {
+  --pane-accent: #f43f5e;
+}
+
+.vp-pane--sagittal {
+  --pane-accent: #eab308;
+}
+
+.vp-pane--coronal {
+  --pane-accent: #22c55e;
+}
+
+.vp-pane--render {
+  --pane-accent: #6ea8fe;
+}
+
+/* Solid fill so the fullscreen 3D overlay (viewMode "3d") never shows the MPR
+   grid bleeding through while the mesh/volume view is still initializing. */
+.vp-pane--render,
+.vp-pane--render .canvas {
+  background: var(--vp-bg, #08090b);
+}
+
+/* "Hover to identify" active: a distinct cursor hints the pane now reports the
+   organ under the pointer instead of just navigating. */
+.vp-pane--hover-identify {
+  cursor: help;
+}
+
+/* ---- Per-pane slice scrollbar + "current/total" caption (bottom right) ---- */
+/* A horizontal <input type="range"> rotated into a vertical scrollbar pinned to the
+   pane's right edge. Rotation happens around the element's own center (transform-origin
+   stays the default center), so centering it against the edge has to account for the
+   pre-rotation box, not the rotated one: with `right` measured on the unrotated box,
+   the visual (post-rotation) center sits at `paneWidth - right - trackLength/2`, and the
+   visual right edge of the thin/thick post-rotation dimension is that value + track/2.
+   Solving `visualRightEdge == paneWidth - edgeGap` for `right` gives the formula below —
+   it comes out negative (pushing the unrotated box's positioning past the pane's own
+   right edge) because the box's *pre-rotation width* is the long track dimension, and
+   half of that has to be cancelled out to bring the rotated bar back to the edge.
+   edgeGap(8) + track/2(3) - length/2(100, at the 200px cap) = -89px. */
+.vp-slice-scrollbar {
+  position: absolute;
+  top: 50%;
+  right: -89px;
+  z-index: 6;
+  width: 55%;
+  max-width: 200px;
+  height: 6px;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center center;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Thumb is elongated along the (pre-rotation) track axis — after the -90deg rotation
+   that reads as a tall pill, like a native scrollbar thumb, instead of a round slider
+   handle. */
+.vp-slice-scrollbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 11px;
+  border-radius: 5px;
+  background: #ffffff;
+  border: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.vp-slice-scrollbar::-moz-range-thumb {
+  width: 26px;
+  height: 11px;
+  border-radius: 5px;
+  background: #ffffff;
+  border: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.vp-slice-caption {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 6;
+  font-family: var(--vp-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(14, 15, 18, 0.72);
+  border: 1px solid var(--vp-border);
+  border-radius: 6px;
+  padding: 3px 7px;
+  pointer-events: none;
+}
+
+.vp-slice-jump-input {
+  box-sizing: border-box;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 6;
+  width: 56px;
+  font-family: var(--vp-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(14, 15, 18, 0.85);
+  border: 1px solid var(--vp-accent, #6ea8fe);
+  border-radius: 6px;
+  padding: 3px 6px;
+  text-align: center;
+  outline: none;
+}
+
+.vp-slice-jump-input::-webkit-outer-spin-button,
+.vp-slice-jump-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ---- W/L readout (bottom left) — briefly shown while the brightness/contrast
+   sliders or a preset are actively changing the window, then fades back out. ---- */
+.vp-window-readout {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 6;
+  font-family: var(--vp-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(14, 15, 18, 0.72);
+  border: 1px solid var(--vp-border);
+  border-radius: 6px;
+  padding: 3px 7px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.vp-window-readout--visible {
+  opacity: 1;
+}
+
+/* ---- Loading overlay (lightweight; no WebGL so it never competes with the
+   viewer's NiiVue/Cornerstone contexts) ---- */
+.vp-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  /* above the empty viewports, below the gear/home chrome (z-50) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  background: var(--vp-bg, #08090b);
+  font-family: var(--vp-font);
+}
+
+.vp-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.7);
+  animation: vp-spin 0.8s linear infinite;
+}
+
+@keyframes vp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vp-loading__text {
+  font-family: var(--vp-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vp-text-dim, rgba(255, 255, 255, 0.5));
+}
+
+/* Measured-ETA progress bar shown under the loading spinner while a case's volume
+   downloads. */
+.vp-progress {
+  width: 280px;
+  max-width: 70vw;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--vp-font);
+}
+
+.vp-progress__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.vp-progress__label {
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint, rgba(255, 255, 255, 0.36));
+}
+
+.vp-progress__pct {
+  font-family: var(--vp-mono);
+  font-size: 12px;
+  color: var(--vp-text-dim, rgba(255, 255, 255, 0.5));
+  font-variant-numeric: tabular-nums;
+}
+
+.vp-progress__track {
+  width: 100%;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.vp-progress__fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--vp-accent, #6ea8fe);
+  transition: width 0.3s ease;
+}
+
+.vp-progress__fill.is-finalizing {
+  width: 100%;
+  animation: vp-pulse 1s ease-in-out infinite;
+}
+
+@keyframes vp-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---- Organs / Class Map panel (left side) ---- */
+/* Docked left of the stage (in flow). Hidden with display (not a slide transform)
+   so it keeps its mounted state without occupying space when closed. */
+.vp-organs {
+  display: none;
+  flex: 0 0 288px;
+  min-height: 0;
+  font-family: var(--vp-font);
+  background: rgba(14, 15, 18, 0.94);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-right: 1px solid var(--vp-border);
+  color: var(--vp-text);
+}
+
+.vp-organs--open {
+  display: flex;
+}
+
+.vp-organs__title {
+  font-family: var(--vp-font);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--vp-text);
+}
+
+.vp-organs__back {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  border-radius: 8px;
+  color: var(--vp-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.vp-organs__back:hover {
+  background: var(--vp-hover);
+}
+
+.vp-organs__list {
+  margin-right: -8px;
+  padding-right: 8px;
+}
+
+.vp-organs__list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vp-organs__list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+}
+
+/* refined disclosure chevron */
+.vp-organs__chevron {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--vp-text-faint);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.18s ease, color 0.15s, background 0.15s;
+}
+
+.vp-organs__chevron:hover {
+  color: var(--vp-text);
+  background: var(--vp-hover);
+}
+
+.vp-organs__chevron.is-open {
+  transform: rotate(90deg);
+}
+
+/* "Jump to organ" target button next to each organ — centers the MPR on that organ. */
+.vp-organs__jump {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--vp-text-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.15s, background 0.15s;
+}
+
+/* reveal only when hovering that organ's row (or when focused via keyboard) */
+.vp-organs__list .flex:hover>.vp-organs__jump,
+.vp-organs__jump:focus-visible {
+  opacity: 1;
+}
+
+.vp-organs__jump:hover {
+  color: var(--vp-accent);
+  background: var(--vp-hover);
+}
+
+/* custom checkbox */
+.vp-checkbox {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 6px;
+  border: 1.5px solid var(--vp-border-strong);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.vp-checkbox:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.vp-checkbox:active {
+  transform: scale(0.92);
+}
+
+.vp-checkbox--on {
+  background: var(--vp-accent);
+  border-color: var(--vp-accent);
+}
+
+/* ---- Organ statistics panel — docked right of the stage (in flow, not overlay) ---- */
+.vp-stats {
+  flex: 0 0 350px;
+  width: 350px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(14, 15, 18, 0.92);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-left: 1px solid var(--vp-border);
+  font-family: var(--vp-font);
+  overflow: hidden;
+}
+
+.vp-stats__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--vp-border);
+}
+
+.vp-stats__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vp-stats__export {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--vp-border);
+  color: var(--vp-text-dim);
+  font-family: var(--vp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  border-radius: 6px;
+  padding: 3px 7px;
+  cursor: pointer;
+}
+
+.vp-stats__export:hover {
+  color: var(--vp-text);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.vp-stats__close {
+  background: transparent;
+  border: none;
+  color: var(--vp-text-dim);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.vp-stats__close:hover {
+  color: var(--vp-text);
+}
+
+/* Out-of-range summary banner above the table. */
+.vp-stats__summary {
+  margin: 10px 12px 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 180, 84, 0.1);
+  border: 1px solid rgba(255, 180, 84, 0.28);
+  color: #ffce9a;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.vp-stats__summary strong {
+  color: #465bfc;
+}
+
+.vp-stats__msg {
+  padding: 24px 16px;
+  font-family: var(--vp-mono);
+  font-size: 12px;
+  color: var(--vp-text-dim);
+  text-align: center;
+}
+
+.vp-stats__table {
+  overflow-y: auto;
+  padding: 6px 8px 12px;
+}
+
+.vp-stats__table::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vp-stats__table::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+}
+
+.vp-stats__row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.8fr;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-family: var(--vp-font);
+  font-size: 12.5px;
+  color: var(--vp-text);
+}
+
+/* 4-column layout when the population percentile column is present. */
+.vp-stats__table--pct .vp-stats__row {
+  grid-template-columns: 1.15fr 0.8fr 0.55fr 0.85fr;
+  gap: 6px;
+}
+
+.vp-stats__row span:nth-child(2),
+.vp-stats__row span:nth-child(3),
+.vp-stats__row span:nth-child(4) {
+  font-family: var(--vp-mono);
+  font-size: 11px;
+  color: var(--vp-text-dim);
+  text-align: right;
+}
+
+/* Percentile cell: number stacked over a tiny distribution sparkline. */
+.vp-stats__pct {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.vp-stats__pctnum {
+  font-family: var(--vp-mono);
+  font-size: 11px;
+}
+
+/* Muted by default, highlighted when in the extreme tails (<p5 / >p95). */
+.vp-stats__pct--flag {
+  color: #465bfc !important;
+  font-weight: 600;
+}
+
+/* Percentile sparkline: 0–100 track, p5–p95 band shaded, marker at the case value. */
+.vp-spark {
+  position: relative;
+  width: 100%;
+  max-width: 52px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.vp-spark__band {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 0;
+  bottom: 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.vp-spark__marker {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transform: translate(-50%, -50%);
+}
+
+.vp-spark__marker--flag {
+  background: #465bfc;
+}
+
+/* Explicit index-based stripe (not :nth-child) since expanded detail rows are interleaved
+   siblings and would otherwise shift which rows count as "odd". */
+.vp-stats__row--odd {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.vp-stats__row--head {
+  position: sticky;
+  top: 0;
+  background: rgba(14, 15, 18, 0.96);
+}
+
+.vp-stats__row--head span {
+  font-family: var(--vp-mono) !important;
+  font-size: 9px !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint) !important;
+  font-weight: 600;
+}
+
+/* Each data row expands in place to reveal the full metric breakdown (median, std dev,
+   skewness, kurtosis, voxel count, min/max HU, truncation flag) — everything
+   calculate_metrics computes, without cluttering the default compact table. */
+.vp-stats__row--expandable {
+  cursor: pointer;
+}
+
+.vp-stats__row--expandable:hover {
+  background: var(--vp-hover);
+}
+
+.vp-stats__chevron {
+  display: inline-block;
+  width: 10px;
+  margin-right: 2px;
+  font-size: 10px;
+  color: var(--vp-text-faint);
+  transition: transform 0.15s ease;
+}
+
+.vp-stats__chevron--open {
+  transform: rotate(90deg);
+}
+
+.vp-stats__truncated-flag {
+  margin-left: 5px;
+  font-size: 10px;
+  color: #465bfc;
+  cursor: help;
+}
+
+.vp-stats__detail {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px 14px;
+  margin: -2px 4px 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--vp-border);
+}
+
+.vp-stats__detail-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--vp-mono);
+}
+
+.vp-stats__detail-item span:first-child {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint);
+}
+
+.vp-stats__detail-item span:last-child {
+  font-size: 11px;
+  color: var(--vp-text-dim);
+}
+
+/* ---- Case metadata panel — shares the .vp-stats dock shell (right of the stage) ---- */
+.vp-meta__list {
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vp-meta__list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vp-meta__list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+}
+
+.vp-meta__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+}
+
+/* Same alternating-row treatment as the organ statistics table, for a consistent feel
+   between the two docked panels. */
+.vp-meta__row--odd {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.vp-meta__label {
+  font-family: var(--vp-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vp-text-faint);
+  white-space: nowrap;
+}
+
+.vp-meta__value {
+  font-family: var(--vp-font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-text);
+  text-align: right;
+}
+
+/* ---- Floating organ tooltip ---- */
+.vp-organ-tip {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--vp-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  background: rgba(14, 15, 18, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  border: 1px solid var(--vp-border);
+  /* Overridden inline per-organ (borderLeftColor) to match its segmentation color. */
+  border-left-width: 3px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Small color dot restating the same match, in case the border reads too subtly. */
+.vp-organ-tip__swatch {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+/* ---- Single-view layouts (one pane fills the grid) ---- */
+.visualization-container.single-view {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  /* removed: transition: all 0.6s ease; — animating grid-template-* is unreliable across browsers and can leave the grid in an inconsistent state */
+}
+
+/* NOTE: single-view-2d intentionally has NO padding/box-sizing rule here.
+   The Report's 2D inset (top/right/bottom/left "breathing room" around the
+   floating glass panels) is applied per-pane via inline styles in
+   panelStyle() in VisualizationPage.tsx — using explicit width/height
+   calc() so it correctly overrides the `.visualization-container > div`
+   100%-size rule above. Adding container-level padding here too would
+   double-inset the image (shrink the container AND the pane within it),
+   reproducing the off-center/oversized CT bug we already fixed. The
+   rounded-corner + shadow treatment below is purely cosmetic and is safe
+   to keep since it doesn't affect sizing. */
+.visualization-container.single-view-2d .axial,
+.visualization-container.single-view-2d .sagittal,
+.visualization-container.single-view-2d .coronal {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.55);
+}
+
+.vp-pane--edit-cursor {
+  cursor: crosshair;
+}
+
+.vp-edit__method-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin: 4px 0 10px;
+}
+
+.vp-edit__method-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--vp-border);
+  background: var(--vp-panel-strong);
+  color: var(--vp-text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.vp-edit__method-card strong {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.vp-edit__method-card span {
+  font-size: 11px;
+  color: var(--vp-text-dim);
+  line-height: 1.3;
+}
+
+.vp-edit__method-card:hover {
+  background: var(--vp-hover);
+  border-color: var(--vp-border-strong);
+}
+
+.vp-edit__method-card.is-active {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.vp-edit__method-card.is-active strong,
+.vp-edit__method-card.is-active span {
+  color: #08090b;
+}
+
+.vp-brush-preview {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px dashed rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 35;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* Point/box-segment SUCCESS/ERROR now reuses the shared GuidedStepModal
+   (SliceAnchorPickerUI.tsx) instead of its own bottom pill — no CSS of
+   its own needed here anymore. */
+
+/* Full-screen loading overlay shown while the Annotate button's forced HD
+   upgrade is in flight (see annotateHdLoading in VisualizationPage.tsx).
+   Sits above everything, including the AI sidebar and main toolbar, since
+   HD must finish before ANY annotation UI is usable. */
+.vp-annotate-hd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(8, 9, 11, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: all;
+}
+
+.vp-annotate-hd-overlay__spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--jhu-blue-accent, #68ACE5);
+  animation: vp-annotate-hd-spin 0.85s linear infinite;
+}
+
+.vp-annotate-hd-overlay__label {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+
+@keyframes vp-annotate-hd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

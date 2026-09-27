@@ -1,0 +1,840 @@
+.segpop {
+    position: fixed;
+    z-index: 45;
+    width: 320px;
+    /* Full-height docked sidebar, same silhouette as AISidebar: runs from
+       under the main topbar to the bottom of the viewport. The annotation
+       ribbon floats separately as a small centered popout (see .atb-shell
+       in AnnotationToolbar.css) and no longer reserves space here — see
+       DOCK_CLEARANCE in SegmentsPopup.tsx. */
+    display: flex;
+    flex-direction: column-reverse;
+    /* header at top, body grows downward (see SegmentsPopup.tsx's
+       column-reverse note) */
+    border-radius: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.09);
+    /* Runs the same faint hairline across the top edge at rest so the
+       panel reads as one bordered rectangle (left + top), not just a
+       left-edge divider. Both edges turn into the brighter blue accent
+       together in .segpop.is-open below. */
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    /* Plain translucent black (not the main toolbar's dark-gray tint —
+       see .vp-topbar in VisualizationPage.css) so this panel reads as its
+       own distinct surface. */
+    background: rgba(34, 34, 42, 0.62);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: -10px 0 28px -10px rgba(0, 0, 0, 0.6);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    overflow: hidden;
+}
+
+/* Slide in/out: the panel stays mounted at full size and only its
+   position animates, same idea as AISidebar's open/close transform. */
+.segpop--docked {
+    transition: transform 0.2s ease;
+}
+
+.segpop.is-open {
+    transform: translateX(0);
+    /* Blue-tinted left + top edges — same brightened accent color used by
+       AnnotationToolbar's ribbon border (.atb--horizontal) when open, so
+       the two read as one coordinated "annotation mode is on" surface,
+       distinct from the plain-black main toolbar and other panels.
+       Bumped from 0.3 -> 0.55 opacity to match the ribbon's own increase,
+       and now covers the top edge too instead of just the left one, so
+       the outline reads as wrapping the whole panel rather than a single
+       side divider. */
+    border-left-color: rgba(104, 172, 229, 0.55);
+    border-top-color: rgba(104, 172, 229, 0.55);
+}
+
+.segpop.is-closed {
+    transform: translateX(calc(100% + 12px));
+    pointer-events: none;
+}
+
+.segpop__resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: ew-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    touch-action: none;
+}
+
+.segpop__resize-handle:hover .segpop__resize-grip,
+.segpop__resize-handle:active .segpop__resize-grip {
+    background: rgba(104, 172, 229, 0.55);
+}
+
+.segpop__resize-grip {
+    width: 3px;
+    height: 32px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background 0.12s;
+}
+
+.segpop__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.segpop__body {
+    /* This is the flex-grow scroll region that soaks up the full-height
+       dock's leftover space — header/tabs above it stay a fixed size,
+       this fills everything else and scrolls internally. */
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Softens the Existing/Custom tab switch — a quick fade+slide-in on the
+   freshly-mounted tab's content instead of it snapping in place the
+   instant the tab is clicked. */
+.segpop__tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    animation: segpop-tab-in 0.18s ease both;
+}
+
+@keyframes segpop-tab-in {
+    from {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.segpop__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    max-height: 64px;
+    overflow: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.2s ease,
+        margin 0.2s ease, padding 0.2s ease;
+    animation: segpop-row-in 0.2s ease both;
+}
+
+@keyframes segpop-row-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.segpop__row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.segpop__row.is-active {
+    background: rgba(104, 172, 229, 0.14);
+}
+
+.segpop__row.is-editing-target {
+    background: rgba(104, 172, 229, 0.1);
+    outline: 1px solid rgba(104, 172, 229, 0.35);
+    outline-offset: -1px;
+}
+
+.segpop__vis {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    display: flex;
+}
+
+/* The single color swatch shown while editing. Browsers pad native
+   type=color inputs and render an inner swatch inside that padding, which
+   can look like two nested squares — strip the padding/appearance so this
+   is one flush chip, matching the static .segpop__swatch it replaces. */
+.segpop__color {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    overflow: hidden;
+}
+
+.segpop__color::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.segpop__color::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+.segpop__color::-moz-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+/* Anchors the gradual color popover to the swatch that opened it. */
+.segpop__color-anchor {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+}
+
+/* The swatch itself, now a plain button that opens the popover instead of
+   a native <input type="color"> — same size/shape as the old color input
+   so nothing else in the row shifts. */
+.segpop__color-btn {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+}
+
+.segpop__color-popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: #16181d;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    transform-origin: top left;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.segpop__color-popover.is-open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.segpop__color-popover.is-closing {
+    opacity: 0;
+    transform: scale(0.94) translateY(-2px);
+    pointer-events: none;
+}
+
+/* Portaled straight to <body> (see ColorPickerPopover in SegmentsPopup.tsx)
+   so it can spill outside .segpop/.segpop__list/.segpop__row's own
+   overflow:hidden instead of being clipped to the panel. Position itself
+   comes from the inline style (fixed top/left computed off the swatch
+   button's rect) — this just needs to sit above the popup panel itself
+   (.segpop is z-index: 45) and drop the old anchored top/left/absolute. */
+.segpop__color-popover--portaled {
+    position: fixed;
+    z-index: 2000;
+    transform-origin: top left;
+}
+
+.segpop__color-popover--portaled.is-open {
+    transform: scale(1) translateY(0);
+}
+
+.segpop__color-popover--portaled.is-closing {
+    transform: scale(0.94) translateY(-2px);
+}
+
+.segpop__color-popover-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 20px);
+    gap: 6px;
+}
+
+.segpop__color-popover-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    padding: 0;
+}
+
+.segpop__color-popover-swatch.is-active {
+    outline: 2px solid #7cb7da;
+    outline-offset: 1px;
+}
+
+.segpop__color-popover-custom {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+}
+
+.segpop__color-popover-custom input[type="color"] {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Explicit commit footer for the color popover — live preview + hex value
+   + a clear "Done" close button, so picking a color visibly registers
+   before the popover disappears instead of a swatch click silently
+   closing it with no confirmation of what was chosen. Doesn't itself save
+   the class (that's still the row's own Save/ApplyButton); this is purely
+   about the popover's own selection state being unambiguous. */
+.segpop__color-popover-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.segpop__color-popover-preview {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.segpop__color-popover-hex {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.7);
+    flex: 1;
+}
+
+.segpop__color-popover-done {
+    appearance: none;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #7cb7da;
+    color: #16181d;
+    cursor: pointer;
+}
+
+.segpop__color-popover-done:hover {
+    background: #7cb7da;
+}
+
+/* Static color chip shown in the normal (non-editing) row — color is only
+   changed together with the name via the pen-icon editor, so this isn't an
+   <input type="color"> and doesn't open a picker on click. */
+.segpop__swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+/* Shared active/targeting indicator — icon only, used identically in the
+   Existing-organ and Custom tabs so both read the same way and cost the
+   row as little width as possible, leaving more room for the name. Now a
+   real button (see TargetBadge in SegmentsPopup.tsx): clicking it untargets
+   the class directly, so the icon itself is the "remove target" control. */
+.segpop__target-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: #7cb7da;
+    background: rgba(104, 172, 229, 0.16);
+}
+
+.segpop__target-badge--btn {
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+
+.segpop__target-badge--btn:hover {
+    background: rgb(17, 0, 75);
+    color: #7cb7da;
+    transform: scale(1.08);
+}
+
+.segpop__row.is-deleting {
+    opacity: 0;
+    transform: scale(0.97);
+    max-height: 0;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    cursor: default;
+    pointer-events: none;
+}
+
+.segpop__spin {
+    animation: segpop-spin 0.8s linear infinite;
+}
+
+@keyframes segpop-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.segpop__edit-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.segpop__edit-btn:hover,
+.segpop__edit-btn.is-active {
+    color: #7cb7da;
+}
+
+/* Floating add/edit form (see FormFlyout in SegmentsPopup.tsx). Portaled to
+   <body> and positioned via inline `fixed` coords computed off the trigger
+   button's own rect — it never participates in the row list's flex flow, so
+   opening it never shifts any existing row or icon. Open/close is driven by
+   this component's own JS timer rather than waiting on a transitionend, so
+   (unlike the old inline collapse) it can't get stuck: closing always
+   finishes and calls back, every time. */
+.segpop__form-flyout {
+    position: relative;
+    z-index: 2000;
+    width: 260px;
+    max-width: calc(100vw - 16px);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 10px;
+    background: #16181d;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+    transform-origin: top left;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.segpop__form-flyout.is-open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.segpop__form-flyout.is-closing {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+    pointer-events: none;
+}
+
+/* Little pointer connecting the flyout back to whichever button opened it
+   (the "Add class" button, or a row's pencil icon) — left offset is set
+   inline, computed from that trigger's own center. */
+.segpop__form-flyout-arrow {
+    position: absolute;
+    top: -6px;
+    width: 11px;
+    height: 11px;
+    background: #16181d;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.segpop__form-flyout-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    position: relative;
+}
+
+/* Shared action-row layout — used identically by the "Add class" form and
+   the inline rename/recolor row so Save/Cancel and Add/Cancel line up the
+   same way underneath their text field. */
+.segpop__row-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.segpop__edit-confirm {
+    background: #002d72;
+    border: none;
+    color: #ffffff;
+    border-radius: 6px;
+    height: 22px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.segpop__edit-cancel {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.segpop__name {
+    flex: 1;
+    min-width: 0;
+    /* required for flex children to actually shrink/ellipsize
+                     instead of forcing the row wider than the panel */
+    font-size: 12.5px;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.segpop__name-input {
+    flex: 1;
+    /* Without this, the flex item's default min-width (auto = its content
+       width) can force the input — and the row around it — wider than the
+       popup at its narrower resize widths, which read as the box getting
+       cut off at the edge. min-width: 0 lets it actually shrink to fit
+       instead. */
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    color: #fff;
+    padding: 5px 7px;
+    font-size: 12.5px;
+}
+
+.segpop__name-input.is-error {
+    border-color: #000000;
+}
+
+.segpop__delete {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    display: flex;
+}
+
+.segpop__delete:hover:not(:disabled) {
+    color: #7cb7da;
+}
+
+.segpop__err {
+    position: absolute;
+    right: 8px;
+    bottom: -2px;
+    font-size: 9.5px;
+    color: #ffffff;
+}
+
+.segpop__err--block {
+    position: static;
+    display: block;
+    margin-top: 4px;
+}
+
+.segpop__new {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.segpop__new:hover,
+.segpop__new.is-active {
+    color: #fff;
+    border-color: rgba(104, 172, 229, 0.45);
+}
+
+.segpop__new.is-active {
+    background: rgba(104, 172, 229, 0.1);
+}
+
+/* Now rendered via the shared ApplyButton component (see SegmentsPopup.tsx)
+   so it carries the same quiet-bordered-chip look as every flyout's own
+   Apply/Grow/Shrink/Smooth action instead of its own bespoke solid-white
+   button — this rule only stretches it to fill its half of the row, same
+   flex job the old inline `style={{ flex: 1 }}` did. */
+.segpop__add-confirm {
+    flex: 1;
+    justify-content: center;
+}
+
+.segpop__add-cancel {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    display: flex;
+}
+
+/* Base look now comes from the shared .atb-action-btn class (same quiet
+   chip as every flyout's own action buttons) — this just centers its
+   label since Cancel has no trailing arrow/spinner to balance against. */
+.segpop__add-cancel-text {
+    justify-content: center;
+}
+
+.segpop__catalog {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 6px 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.segpop__catalog-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.segpop__catalog-select {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 6px;
+    color: #fff;
+    padding: 6px 8px;
+    font-size: 12.5px;
+}
+
+/* Tab toggle between "existing organ" and "custom class" modes */
+.segpop__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    flex-shrink: 0;
+}
+
+
+.segpop__tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.segpop__tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.segpop__tab.is-active {
+    background: #fff;
+    color: #08090b;
+    border-color: #fff;
+}
+
+.segpop__tab-dot {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #7cb7da;
+}
+
+.segpop__tab.is-active .segpop__tab-dot {
+    background: #08090b;
+}
+
+.segpop__hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 8px 8px 4px;
+    line-height: 1.4;
+}
+
+/* "Show only target class" toggle — sits centered above the organ/class
+   list, replacing the old per-tab hint text. */
+.segpop__show-target {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px 8px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    user-select: none;
+}
+
+.segpop__show-target.is-disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.segpop__show-target-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.segpop__show-target[aria-checked="true"] .segpop__show-target-box {
+    background: #002d72;
+    border-color: #002d72;
+}
+
+.segpop__show-target-check {
+    color: #ffffff;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.segpop__show-target[aria-checked="true"] .segpop__show-target-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.segpop__catalog-list {
+    /* No height/scroll of its own — .segpop__body is the only scroll
+       container, so the list extends as far as the panel goes. */
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.segpop__catalog-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12.5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.segpop__catalog-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.segpop__catalog-row.is-active {
+    background: rgba(104, 172, 229, 0.16);
+    color: #fff;
+}
+
+.segpop__catalog-row-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.segpop__char-count {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 9.5px;
+}
+
+
+.segpop__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Drag-handle hit target only — no title text lives here (see
+       SegmentsPopup.tsx), so padding/border are zeroed to avoid a gap
+       above the tabs. The gap above "Existing class"/"Custom" comes from
+       .segpop__tabs's own padding, not this element. */
+    padding: 0;
+    border-bottom: none;
+    min-height: 0;
+    flex-shrink: 0;
+}
+
+/* Don't pin top/bottom with !important here — it fights the inline
+   height/top that SegmentsPopup.tsx's ResizeObserver writes to this
+   element, causing a runaway resize loop. Fix in SegmentsPopup.tsx
+   (guard the observer callback) rather than overriding from CSS. */

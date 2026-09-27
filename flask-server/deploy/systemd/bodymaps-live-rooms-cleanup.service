@@ -1,0 +1,12 @@
+[Unit]
+Description=Delete expired BodyMaps Live Rooms
+
+[Service]
+Type=oneshot
+User=visitor
+Group=visitor
+WorkingDirectory=/home/visitor/PanTS-Viewer/flask-server
+ExecStart=/home/visitor/PanTS-Viewer/flask-server/.venv/bin/python scripts/cleanup_live_rooms.py
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true

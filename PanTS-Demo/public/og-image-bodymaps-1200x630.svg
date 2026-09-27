@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">BodyMaps</title>
+  <desc id="description">The intelligence layer for medical imaging AI</desc>
+  <rect width="1200" height="630" fill="#FFFFFF" />
+  <!--
+    Both text lines sit inside x=285..915, the central 630px square that remains
+    visible when social apps turn this standard 1.91:1 card into a square preview.
+  -->
+  <text x="600" y="288" text-anchor="middle" fill="#0B0B0D" font-family="Arial, Helvetica, sans-serif" font-size="100" font-weight="700" letter-spacing="-4">
+    <tspan fill="#002D72">Body</tspan><tspan>Maps</tspan>
+  </text>
+  <text x="600" y="354" text-anchor="middle" fill="#8A8A8A" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" letter-spacing="-0.5">The intelligence layer for medical imaging AI</text>
+</svg>

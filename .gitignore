@@ -1,0 +1,43 @@
+.env
+node_modules/
+.venv/
+certs/
+dist/
+tmp/*
+
+/PanTS/
+downloaded.nii.gz
+PanTS-Demo/public/image_only/PanTS_*/
+PanTS-Demo/public/mask_only/PanTS_*/
+PanTS-Demo/public/quiz/
+/quiz-data/
+PanTS-Demo/public/metadata.official.xlsx
+PanTS/data/pdf/
+.DS_Store
+
+# Local SQLite dev database (production uses DATABASE_URL outside the repo).
+# The -wal/-shm sidecars are created by WAL mode; ignore all three.
+flask-server/pants-dev.db
+flask-server/pants-dev.db-wal
+flask-server/pants-dev.db-shm
+
+/CancerVerse/
+
+# Local Claude Code scratch config (launch profiles etc.)
+.claude/
+
+# Local Playwright MCP artifacts.
+.playwright-mcp/
+
+# MaxMind GeoLite2 database for the analytics visitor map. ~60MB and not
+# redistributable; each deploy fetches its own with
+# flask-server/scripts/download_geolite.py.
+flask-server/data/
+
+# Vite's dependency-optimizer cache. Created wherever a dev server is started
+# from; never source.
+.vite/
+
+# Runtime lock held by the inference queue worker.
+sessions/inference_queue/.lock
+scans/

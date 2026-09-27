@@ -1,0 +1,153 @@
+/* Batch details popup. Ink/paper neutrals + BodyMaps accent, matching the app. */
+
+.bdm-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	background: rgba(17, 17, 17, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 5vh 4vw;
+	animation: bdm-fade 0.15s ease;
+}
+
+@keyframes bdm-fade {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+.bdm-panel {
+	width: 100%;
+	max-width: 760px;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	background: #ffffff;
+	border-radius: 16px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+	overflow: hidden;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.bdm-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px 24px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.bdm-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #111111;
+}
+.bdm-subtitle {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 12px;
+	color: #8f8f8f;
+	margin-top: 2px;
+}
+.bdm-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.bdm-download-all {
+	padding: 8px 16px;
+	border-radius: 8px;
+	background: #002d72;
+	color: #ffffff;
+	border: 1px solid #002d72;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+.bdm-download-all:hover {
+	background: #00399a;
+}
+.bdm-close {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 8px;
+	background: transparent;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	color: #6a6a6a;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 22px;
+	line-height: 1;
+	padding: 0 0 2px;
+}
+.bdm-close:hover {
+	background: rgba(0, 0, 0, 0.05);
+	color: #111111;
+}
+
+.bdm-list {
+	overflow-y: auto;
+	padding: 12px 24px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bdm-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 14px 16px;
+	border-radius: 10px;
+	background: #f5f5f5;
+	border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.bdm-row-main {
+	min-width: 0;
+}
+.bdm-row-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #111111;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.bdm-row-sub {
+	font-family: "IBM Plex Mono", ui-monospace, monospace;
+	font-size: 11px;
+	color: #6a6a6a;
+	margin-top: 2px;
+}
+.bdm-row-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+.bdm-status {
+	font-size: 12px;
+	font-weight: 500;
+}
+.bdm-btn {
+	padding: 6px 12px;
+	border-radius: 6px;
+	background: transparent;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+	color: #111111;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 11px;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+.bdm-btn:hover {
+	background: rgba(0, 0, 0, 0.05);
+	border-color: rgba(0, 0, 0, 0.2);
+}

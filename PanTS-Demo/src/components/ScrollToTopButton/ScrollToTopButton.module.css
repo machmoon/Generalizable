@@ -1,0 +1,45 @@
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: var(--z-dropdown);
+
+  width: var(--control-h);
+  height: var(--control-h);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  background: #002D72;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.btn:hover {
+  background: #00399a;
+}
+
+.btn:active {
+  transform: scale(0.93);
+}
+
+.btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

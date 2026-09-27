@@ -1,0 +1,51 @@
+.sectionHeader {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8f8f8f;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.actionBtn {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+  padding: 0;
+}
+.actionBtn:hover {
+  color: rgba(0, 0, 0, 0.85);
+}
+.actionBtnActive {
+  color: rgba(0, 0, 0, 0.85);
+}
+.actionBtnActive:hover {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.matchTotal {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+@media (max-width: 767px) {
+  .sectionHeader { margin-bottom: 16px; }
+}

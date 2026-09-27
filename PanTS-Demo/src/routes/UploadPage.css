@@ -1,0 +1,1494 @@
+/* ===== UploadPage.css =====
+   DEFERRED pre-brand surface: still monochrome + Space Grotesk while
+   in-flight PRs on this file land. Do not copy this vocabulary — new
+   styling uses the BodyMaps tokens (ink/paper/accent, IBM Plex); see
+   BRANDING.md at the repo root.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ── Page wrapper ── */
+.upload-page-wrapper {
+  min-height: 100vh;
+  background: #ffffff;
+
+  color: #111111;
+  font-family: 'Space Grotesk', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Ambient glow orbs ── */
+.upload-page-wrapper .ambient-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.upload-page-wrapper .ambient-orbs .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+}
+.upload-page-wrapper .ambient-orbs .orb-1 {
+  top: -120px;
+  left: -120px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0,0,0,0.04) 0%, transparent 70%);
+}
+.upload-page-wrapper .ambient-orbs .orb-2 {
+  bottom: -100px;
+  right: -150px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0,0,0,0.03) 0%, transparent 70%);
+}
+
+/* ── Main content area ── */
+.upload-main {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 36px 24px 60px;
+}
+
+/* ── Upload card ── */
+.upload-card {
+  background: #f5f5f5;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 16px;
+  padding: 28px 32px 32px;
+  position: relative;
+}
+
+/* ── Drop zone ── */
+.dropzone {
+  border: 1px dashed rgba(0,0,0,.15);
+  border-radius: 12px;
+  background: rgba(0,0,0,.015);
+  /* Fixed box. It is the SAME height whether it's empty, holding a file chip,
+     or showing an in-flight run - content just centres inside it. Previously
+     the padding collapsed 72px -> 20px the moment a file was picked, so the
+     box visibly halved in height and grew back when the file was removed.
+     box-sizing:border-box so min-height already accounts for the padding.
+     It only grows past this if several files are queued at once. */
+  box-sizing: border-box;
+  min-height: 350px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* Only the hover/drag-over colour cues animate. NEVER transition size
+     (padding/width/height): the page re-renders on a 1s ticker while a run is
+     in flight, and `transition: all` turned every sub-pixel reflow between
+     renders into a 250ms height animation - the box looked like it was
+     perpetually breathing. */
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+  margin-bottom: 24px;
+  position: relative;
+}
+/* An in-flight run (or one that just finished, still showing here) isn't
+   something to "drop a file onto" - drop the dashed affordance so the box
+   reads as a status card, not an active picker. */
+.dropzone:has(.dropzone-inflight),
+.dropzone:has(.dropzone-completed) {
+  border-style: solid;
+  cursor: default;
+}
+.dropzone:hover {
+  border-color: rgba(0,0,0,.25);
+  background: rgba(0,0,0,.03);
+}
+.dropzone.drag-over {
+  border-color: rgba(0,0,0,.4);
+  background: rgba(0,0,0,.06);
+}
+/* Every selected NIfTI file has finished its background upload - the whole
+   box goes green so "done" is visible without reading each chip's text. */
+.dropzone--all-done {
+  border-color: rgba(22, 163, 74, .35);
+  border-style: solid;
+  background: rgba(22, 163, 74, .045);
+}
+.dropzone--all-done:hover {
+  border-color: rgba(22, 163, 74, .5);
+  background: rgba(22, 163, 74, .07);
+}
+.dropzone-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  color: #6a6a6a;
+  transition: color 0.25s;
+}
+.dropzone:hover .dropzone-icon {
+  color: #111111;
+}
+.dropzone-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #8f8f8f;
+  margin-bottom: 4px;
+}
+.dropzone-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #6a6a6a;
+  letter-spacing: 0.04em;
+}
+
+/* ── Dropzone buttons ── */
+.dropzone-btn {
+  padding: 7px 16px;
+  background: rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #111111;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dropzone-btn:hover {
+  background: rgba(0,0,0,.10);
+  border-color: rgba(0,0,0,.2);
+}
+
+/* ── Local DICOM opener under the dropzone ── */
+.dicom-open-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 10px;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.dicom-open-link:hover {
+  border-color: rgba(0, 0, 0, 0.35);
+  color: #111111;
+}
+.dicom-open-link span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: #8f8f8f;
+  letter-spacing: 0.04em;
+}
+
+/* ── Selected-file cards (was a row of small pills; now matches the
+   icon+name+subtext row treatment used by Completed Uploads below) ──
+   White against the dropzone's near-transparent background so the card
+   reads as a distinct object sitting in the box, not a same-gray blob
+   blending into it. */
+.file-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.file-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.file-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* Real chunk-completion progress while a file is uploading in the
+   background - not a simulated sweep, the width tracks actual bytes sent. */
+.file-chip-progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 45, 114, .08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.file-chip-progress-fill {
+  height: 100%;
+  background: #002d72;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+.file-chip-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  background: rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111111;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.file-chip-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.file-chip-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: #8f8f8f;
+  margin-top: 1px;
+  letter-spacing: 0.02em;
+}
+.file-chip-remove {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.06);
+  border: none;
+  color: #8f8f8f;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.file-chip-remove:hover {
+  background: rgba(239,68,68,.15);
+  color: #ef4444;
+}
+
+/* ── File chip upload-status variants ── */
+.file-chip--uploading {
+  border-color: rgba(0, 45, 114, .18);
+}
+.file-chip--uploading .file-chip-icon {
+  background: rgba(0, 45, 114, .06);
+  border-color: rgba(0, 45, 114, .16);
+}
+.file-chip--done {
+  border-color: rgba(22, 163, 74, .25);
+  background: rgba(22, 163, 74, .04);
+}
+.file-chip--done .file-chip-icon {
+  background: rgba(22, 163, 74, .12);
+  border-color: rgba(22, 163, 74, .3);
+  color: #16a34a;
+}
+.file-chip--failed {
+  border-color: rgba(239, 68, 68, .25);
+  background: rgba(239, 68, 68, .04);
+}
+.file-chip--failed .file-chip-icon {
+  background: rgba(239, 68, 68, .1);
+  border-color: rgba(239, 68, 68, .28);
+  color: #ef4444;
+}
+.file-chip--failed .file-chip-sub {
+  color: #ef4444;
+}
+
+/* Small spinning ring shown in the icon slot while a file is uploading in
+   the background - the chip itself is the only upload-progress indicator
+   now, so it needs to read as "working" at a glance. */
+.file-chip-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 45, 114, .18);
+  border-top-color: #002d72;
+  animation: file-chip-spin 0.7s linear infinite;
+}
+@keyframes file-chip-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Pipeline row ── */
+.pipeline-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  margin-top: 4px;
+}
+.pipeline-step {
+  flex: 1;
+  min-width: 0;
+}
+.pipeline-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pipeline-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #002d72;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.pipeline-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111111;
+}
+.pipeline-optional {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  font-style: italic;
+  color: #6a6a6a;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+/* ── Custom pipeline select ── */
+.ps-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.ps-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 14px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: #8f8f8f;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.ps-trigger.has-value {
+  color: #111;
+}
+
+.ps-trigger:hover {
+  border-color: rgba(0,0,0,.15);
+  background-color: rgba(0,0,0,.06);
+}
+
+.ps-arrow {
+  flex-shrink: 0;
+  margin-left: 8px;
+  opacity: 0;
+  width: 0;
+}
+
+.ps-trigger::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 6px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236a6a6a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.ps-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  z-index: 200;
+  overflow: visible;
+}
+
+.ps-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.ps-option:first-child { border-radius: 8px 8px 0 0; }
+.ps-option:last-child  { border-radius: 0 0 8px 8px; }
+.ps-option:only-child  { border-radius: 8px; }
+
+.ps-option:hover {
+  background: rgba(0,0,0,.05);
+}
+
+.ps-option--selected {
+  background: rgba(0,0,0,.07);
+  color: #111;
+  font-weight: 500;
+}
+
+.ps-option--selected:hover {
+  background: rgba(0,0,0,.10);
+}
+
+.ps-option-label {
+  flex: 1;
+}
+
+/* ── Info icon & tooltip ── */
+.ps-info-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.ps-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 9px;
+  font-style: italic;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  cursor: default;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.ps-info-wrap:hover .ps-info-icon {
+  opacity: 1;
+}
+
+
+.ps-info-tooltip {
+  display: none;
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 210px;
+  background: #111;
+  color: #f5f5f5;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.55;
+  padding: 8px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 300;
+  white-space: normal;
+}
+
+.ps-info-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: #111;
+}
+
+.ps-info-wrap:hover .ps-info-tooltip {
+  display: block;
+}
+
+
+.pipeline-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 8px;
+  color: #8f8f8f;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236a6a6a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.pipeline-select:hover {
+  border-color: rgba(0,0,0,.15);
+  background-color: rgba(0,0,0,.06);
+}
+.pipeline-select:focus {
+  border-color: rgba(0,0,0,.25);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.06);
+}
+.pipeline-select option {
+  background: #f5f5f5;
+  color: #111111;
+}
+.pipeline-select.has-value {
+  color: #111111;
+}
+
+/* Custom model dropdown */
+.model-dropdown {
+  position: relative;
+  width: 100%;
+}
+.model-dropdown-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 8px;
+  color: #8f8f8f;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+.model-dropdown-btn:hover {
+  border-color: rgba(0,0,0,.15);
+  background-color: rgba(0,0,0,.06);
+}
+.model-dropdown-btn.open {
+  border-color: rgba(0,0,0,.25);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.06);
+}
+.model-dropdown-btn.has-value {
+  color: #111111;
+}
+.model-dropdown-chevron {
+  color: #6a6a6a;
+  flex-shrink: 0;
+  transition: transform 0.18s;
+}
+.model-dropdown-chevron.rotated {
+  transform: rotate(180deg);
+}
+.model-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  /* Wider than the trigger: the pipeline steps are narrow columns, and at that
+     width a model description wraps to five lines — worse still once an
+     "Upgrade" pill is sharing the row. */
+  min-width: 300px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  z-index: 100;
+  /* visible (not hidden) so the LesionSegmenter submenu can fly out past the edge */
+  overflow: visible;
+}
+.model-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  /* Shared row height so the (2-line) model rows and the (1-line) submenu rows
+     line up at the same height instead of the parent looking taller. */
+  min-height: 48px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.model-dropdown-item:hover {
+  background: rgba(0,0,0,.04);
+}
+.model-dropdown-item.selected {
+  background: rgba(0, 45, 114, .05);
+}
+.model-dropdown-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  /* Take the slack, so the pill sits at the edge rather than squeezing the text. */
+  flex: 1;
+  min-width: 0;
+}
+.model-dropdown-item-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111111;
+}
+.model-dropdown-item.selected .model-dropdown-item-name {
+  color: #002d72;
+}
+.model-dropdown-item-desc {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: #8f8f8f;
+}
+.model-dropdown-check {
+  color: #002d72;
+  flex-shrink: 0;
+}
+.model-dropdown-item-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+/* A model the plan doesn't include. Dimmed but still readable and still
+   clickable — the click opens the upgrade dialog instead of selecting it. */
+.model-dropdown-item.locked .model-dropdown-item-name,
+.model-dropdown-item.locked .model-dropdown-item-desc {
+  color: #b0b0b0;
+}
+.model-dropdown-lock {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(0, 45, 114, 0.08);
+  color: #002d72;
+  white-space: nowrap;
+}
+
+.model-dropdown-access {
+  margin-top: 4px;
+  padding: 9px 12px 10px;
+  border-top: 1px solid rgba(0, 0, 0, .08);
+  background: rgba(0, 45, 114, .025);
+}
+.model-dropdown-access__toggle {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #002d72;
+  font: 600 11px 'Space Grotesk', sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.model-dropdown-access__form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.model-dropdown-access__form label,
+.model-dropdown-access__form small {
+  color: #6a6a6a;
+  font: 10px 'Space Grotesk', sans-serif;
+}
+.model-dropdown-access__row {
+  display: flex;
+  gap: 6px;
+}
+.model-dropdown-access__row input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid rgba(0, 0, 0, .16);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: #111;
+  font: 11px 'JetBrains Mono', monospace;
+}
+.model-dropdown-access__row button {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #002d72;
+  color: #fff;
+  font: 600 11px 'Space Grotesk', sans-serif;
+  cursor: pointer;
+}
+.model-dropdown-access__row button:disabled {
+  cursor: default;
+  opacity: .5;
+}
+.model-dropdown-access__form p {
+  margin: 0;
+  color: #b42318;
+  font: 10px 'Space Grotesk', sans-serif;
+}
+
+/* ── Cancel button on Active cards ── */
+.active-cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #6a6a6a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.active-cancel-btn:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* Arrow connector */
+.pipeline-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  padding-bottom: 4px; /* align with select bottom */
+  color: #6a6a6a;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Run button */
+.run-btn {
+  flex-shrink: 0;
+  margin-left: 12px;
+  padding: 10px 32px;
+  background: #002d72;
+  border: 1px solid #002d72;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.run-btn:hover:not(:disabled) {
+  background: #1B2436;
+  border-color: #1B2436;
+  color: #ffffff;
+}
+.run-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Stop button ── */
+.stop-btn {
+  padding: 7px 18px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 8px;
+  color: #6a6a6a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.stop-btn:hover {
+  background: rgba(0,0,0,.07);
+  border-color: rgba(0,0,0,.2);
+  color: #111;
+}
+
+/* ── Action bar (check status, download) ── */
+.action-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.action-btn {
+  padding: 8px 18px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 8px;
+  color: #8f8f8f;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.action-btn:hover {
+  background: rgba(0,0,0,.07);
+  border-color: rgba(0,0,0,.12);
+  color: #111111;
+}
+
+/* ── Result actions - rendered inside the drop zone (its own slot, replacing
+   whatever was shown while the run was in flight), so no extra top margin:
+   the box's own centering places it, the same way file-chips/dropzone-inflight
+   already work. ── */
+.result-section {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid rgba(22, 163, 74, .24);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  text-align: left;
+  cursor: default;
+}
+.result-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #166534;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+.result-title-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(22, 163, 74, .1);
+  color: #15803d;
+}
+.result-title-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.result-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.result-btn {
+  padding: 9px 20px;
+  background: rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 8px;
+  color: #111111;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.result-btn:hover {
+  background: rgba(0,0,0,.1);
+  border-color: rgba(0,0,0,.25);
+  color: #111111;
+}
+.result-btn-primary {
+  background: #002d72;
+  border-color: #002d72;
+  color: #ffffff;
+}
+.result-btn-primary:hover {
+  background: #1B2436;
+  border-color: #1B2436;
+  color: #ffffff;
+}
+
+@media (max-width: 720px) {
+  .result-section {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .result-btns {
+    justify-content: flex-start;
+  }
+}
+
+/* ── Status messages ── */
+.status-msg {
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: rgba(0,0,0,.025);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #8f8f8f;
+  word-break: break-all;
+  line-height: 1.5;
+}
+.status-msg-session {
+  color: #6a6a6a;
+}
+
+/* ── Processing counter ── */
+.upload-processing-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #6a6a6a;
+  letter-spacing: 0.04em;
+}
+.upload-processing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #002d72;
+  animation: upload-pulse 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes upload-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* ── Completed rows ── */
+.upload-completed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f5f5f5;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.upload-completed-row:hover {
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.12);
+}
+
+/* ── Download-all button ── */
+.upload-dl-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 8px;
+  color: #111111;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.upload-dl-all-btn:hover {
+  background: rgba(0,0,0,.1);
+  border-color: rgba(0,0,0,.2);
+}
+
+/* ── File chip internals ── */
+.file-chip-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111111;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-chip-preview {
+  padding: 5px 12px;
+  background: rgba(0, 45, 114, .1);
+  border: 1px solid rgba(0, 45, 114, .2);
+  border-radius: 8px;
+  color: #002d72;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.file-chip-preview:hover {
+  background: rgba(0, 45, 114, .18);
+}
+.file-chip--active {
+  border-color: rgba(0, 45, 114, .3);
+  background: rgba(0, 45, 114, .06);
+}
+
+/* Click-to-rename scan name (Completed Uploads) - underline on hover is the
+   only affordance that the text itself is clickable, no separate pencil icon. */
+.upload-rename-trigger {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
+}
+.upload-rename-trigger:hover {
+  text-decoration-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ── Pending CT preview panel ── */
+.pending-preview-panel {
+  margin-bottom: 20px;
+}
+
+/* ── Active job progress card ── */
+.upload-active-job {
+  background: #f5f5f5;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+.upload-active-job-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.upload-active-job-name {
+  flex: 1;
+  min-width: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111111;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.upload-active-job-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #6a6a6a;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* ── Progress rows ── */
+.upload-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.upload-progress-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8f8f8f;
+  width: 58px;
+  flex-shrink: 0;
+}
+.upload-progress-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(0,0,0,.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.upload-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.35s cubic-bezier(.2,.8,.2,1);
+}
+.upload-progress-fill--upload {
+  background: linear-gradient(90deg, #8f8f8f, #002d72);
+}
+.upload-progress-fill--inference {
+  background: linear-gradient(90deg, #6a6a6a, #002d72);
+}
+.upload-progress-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #111111;
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Failed row variant ── */
+.upload-completed-row--failed {
+  cursor: default;
+  border-color: rgba(0,0,0,.08);
+  background: rgba(0,0,0,.03);
+}
+.upload-completed-row--failed:hover {
+  background: rgba(0,0,0,.05);
+  border-color: rgba(0,0,0,.12);
+}
+
+/* ── Completed row icon wrapper ── */
+.upload-completed-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.upload-completed-row--failed .upload-completed-icon {
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.08);
+}
+
+/* ── Pre-inference CT preview ── */
+.ct-preview-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8f8f8f;
+  margin: 16px 0 8px;
+}
+.ct-preview {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: #0a0b0d;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ct-preview-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.ct-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+.ct-preview--msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: #8f8f8f;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-align: center;
+  padding: 0 16px;
+}
+
+/* ── DICOM slice controls (inline stack preview) ── */
+.dicom-preview-controls {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
+}
+.dicom-preview-slider {
+  flex: 1;
+  accent-color: #4a90e2;
+  cursor: pointer;
+}
+.dicom-preview-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  min-width: 54px;
+  text-align: right;
+}
+
+/* ── Active-upload spinner ── */
+@keyframes upload-spin {
+  to { transform: rotate(360deg); }
+}
+.upload-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 45, 114, 0.12);
+  border-top-color: #002d72;
+  animation: upload-spin 0.75s linear infinite;
+}
+
+/* ── Sign-in prompt banner ── */
+.upload-account-banner {
+  margin-top: 24px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6a6a6a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.upload-account-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: #002d72;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Way out to the History page for anything older than a day. */
+.upload-history-link {
+  margin-top: 12px;
+  background: none;
+  border: none;
+  padding: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: #6a6a6a;
+  cursor: pointer;
+}
+.upload-history-link:hover {
+  color: #002d72;
+}
+
+/* ── Processing summary bar (all in-flight scans in one row) ── */
+.proc-bar {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  border: 1px solid rgba(0, 45, 114, 0.14);
+}
+.proc-wheel {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.proc-wheel-pct {
+  position: absolute;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #002d72;
+}
+.proc-info {
+  flex: 1;
+  min-width: 0;
+}
+.proc-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111111;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.proc-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #002d72;
+}
+.proc-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #6a6a6a;
+  margin-top: 4px;
+}
+.proc-spinner {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+/* Static replacement for .proc-spinner once nothing in the batch is running
+   anymore - same footprint, no animation, green to match the rest of the
+   site's "done" language (.result-title-icon, .dropzone--all-done). */
+.proc-done-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(22, 163, 74, .12);
+  color: #15803d;
+}
+/* "safe to close" hint, tucked onto the status line - lighter than the status
+   beside it so it reads as an aside, not another piece of state. */
+.proc-close-note {
+  color: #9a9a9a;
+}
+.proc-close-note--ready {
+  color: #15803d;
+}
+.proc-cancel {
+  flex-shrink: 0;
+}
+.proc-details-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #111111;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.proc-details-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* LesionSegmenter lesion picker — a macOS-style submenu that flies out from the
+   model item (replaces the old inline "Lesion" select). */
+.model-dropdown-item.has-submenu {
+  position: relative;
+}
+.model-submenu-arrow {
+  color: #8f8f8f;
+  flex-shrink: 0;
+}
+.model-submenu {
+  position: absolute;
+  top: -1px;
+  left: calc(100% + 4px);
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 4px 0;
+  z-index: 110;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+}
+/* Invisible bridge across the gap so the hover doesn't drop between the item and
+   its flyout. */
+.model-submenu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 8px;
+  height: 100%;
+}
+.model-dropdown-item.has-submenu:hover > .model-submenu,
+.model-dropdown-item.has-submenu:focus-within > .model-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+.model-submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  /* Match .model-dropdown-item so every row in the menu is the same height. */
+  min-height: 48px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.model-submenu-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.model-submenu-item.selected {
+  background: rgba(0, 45, 114, 0.05);
+}
+.model-submenu-check {
+  width: 14px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #002d72;
+}
+.model-submenu-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111111;
+}
+.model-submenu-item.selected .model-submenu-label {
+  color: #002d72;
+}

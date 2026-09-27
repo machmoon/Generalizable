@@ -1,0 +1,18 @@
+{
+  "profile_version": 1,
+  "profiles": [
+    {
+      "profile_id": "pants-mini-combined-labels-v1",
+      "match": {"case_ranges": [[1, 9901]]},
+      "labels": {
+        "pancreas": [17, 18, 19, 20],
+        "head": [19],
+        "body": [18],
+        "tail": [20],
+        "lesion": [28]
+      },
+      "reveal_output_label": 1,
+      "mesh_organ_id": 22
+    }
+  ]
+}

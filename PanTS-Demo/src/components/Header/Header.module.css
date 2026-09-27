@@ -1,0 +1,239 @@
+/* ===== Header.module.css ===== */
+
+/* ── Sticky wrapper ── */
+.headerRoot {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sidebar);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* ── Nav bar ── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* ── Logo ── */
+.logoPill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.logoImg {
+  width: 38px;
+  height: 38px;
+  display: block;
+}
+.logoTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111111;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* ── Tab bar (desktop) ── */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.tabPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 22px;
+  border-radius: 22px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: #6a6a6a;
+  transition: color 0.2s ease, background 0.2s ease;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  background: transparent;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  line-height: inherit;
+}
+.tabPill:hover {
+  color: #111111;
+}
+.tabPillActive {
+  background: #002D72;
+  color: #ffffff;
+  border-color: #002D72;
+  cursor: default;
+}
+.tabPillActive:hover {
+  color: #ffffff;
+}
+
+/* ── Right-side actions (auth button + hamburger) ── */
+.navActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Hamburger button (hidden on desktop) ── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.hamburger:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.hamburgerLine {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #111111;
+  border-radius: 2px;
+}
+
+/* ── Backdrop ── */
+.backdrop {
+  display: none;
+}
+
+/* ── Side drawer ── */
+.mobileMenu {
+  display: none;
+}
+
+/* ── Responsive — mobile only ── */
+@media (max-width: 767px) {
+  .nav { padding: 14px 20px; }
+  .tabBar { display: none; }
+  .hamburger { display: flex; }
+  .navActions { width: auto; }
+
+  /* Backdrop */
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: calc(var(--z-modal) - 2);
+    border: none;
+    cursor: default;
+  }
+
+  /* Drawer */
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(300px, 85vw);
+    background: #ffffff;
+    z-index: calc(var(--z-modal) - 1);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.14);
+    overflow-y: auto;
+  }
+}
+
+/* ── Drawer internals ── */
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  flex-shrink: 0;
+}
+.drawerTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111111;
+  letter-spacing: -0.01em;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+.drawerClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  color: #6a6a6a;
+  transition: color 0.15s, background 0.15s;
+  padding: 0;
+}
+.drawerClose:hover {
+  color: #111111;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.drawerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 12px 0;
+  flex: 1;
+}
+.mobileTab {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6a6a6a;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  letter-spacing: 0.03em;
+  transition: color 0.15s, background 0.15s;
+  min-height: 44px;
+  text-decoration: none;
+}
+.mobileTab:hover {
+  color: #111111;
+  background: rgba(0, 0, 0, 0.04);
+}
+.mobileTabActive {
+  color: #002D72;
+  background: rgba(0, 45, 114, 0.07);
+}
+.mobileTabActive:hover {
+  color: #002D72;
+}
+
+.drawerFooter {
+  padding: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  flex-shrink: 0;
+}

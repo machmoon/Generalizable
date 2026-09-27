@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /PanTS-Demo
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # All @cornerstonejs/* packages must stay on the same version -
+      # mismatches duplicate the core package and break the viewer.
+      cornerstone:
+        patterns:
+          - "@cornerstonejs/*"
+
+  - package-ecosystem: pip
+    directory: /flask-server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

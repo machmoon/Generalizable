@@ -1,0 +1,19 @@
+{
+  "ledger_version": 1,
+  "approvals": {
+    "radworld-case-35-v1": {
+      "status": "approved",
+      "ledger_id": "case35-reviewed-baseline",
+      "reviewed_at": "2026-08-06T00:00:00Z",
+      "reviewer": "BodyMaps education review",
+      "acknowledged_warnings": ["thick_slices"]
+    }
+  },
+  "difficulty_overrides": {
+    "radworld-case-35-v1": "easy"
+  },
+  "reviewed_template_versions": ["pancreas-imaging-chain/1.0.0"],
+  "reviewed_label_profiles": [],
+  "reviewed_cohorts": ["pancreas-imaging-chain/1.0.0:case35-reviewed-v1"],
+  "quarantined_cohorts": []
+}
