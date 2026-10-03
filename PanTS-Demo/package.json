@@ -35,7 +35,7 @@
     "tailwindcss": "^4.1.12",
     "three": "^0.185.1",
     "topojson-client": "^3.1.0",
-    "ulabel": "^0.27.0",
+    "ulabel": "^0.28.0",
     "world-atlas": "^2.0.2"
   },
   "devDependencies": {
